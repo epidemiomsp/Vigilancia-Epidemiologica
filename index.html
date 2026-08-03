@@ -105,7 +105,7 @@ a{color:var(--brand);text-decoration:none}
 .p-side-tool-lbl{font-size:9px;color:var(--brand);margin:0;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
 .p-side-tool-name{font-size:12px;color:var(--text);font-weight:600;margin:3px 0 0}
 
-/* Lista de herramientas abiertas (múltiples tabs verticales) */
+/* Lista de herramientas abiertas */
 .p-side-tools-list{margin:0 0 8px;display:flex;flex-direction:column;gap:6px}
 .p-side-tools-list .p-side-tool{margin:0 10px}
 .p-side-tools-list .p-side-tool.active{background:#FDF2D0;border-left-width:4px;box-shadow:inset 0 0 0 1px rgba(236,161,9,.2)}
@@ -400,7 +400,8 @@ a{color:var(--brand);text-decoration:none}
 
 <script>
 const CFG = {
-  SHEET_ID: '1bnDNLP3BVmSYsOSwO7uBN9CYMvtWoK8RpC-yatc_HM0',
+  // ID actualizado de la planilla nueva
+  SHEET_ID: '1SiCmkZA8SFAOkHWoFxrkKTCg4pKXhXfGs7E1OOsIKMY',
   USUARIOS_SHEET: 'USUARIOS',
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyfHOxY7NFIsGttGq1A5etYhSghpfq-vjuZQWh9TmRoIaF8hl98RVLtyW1LgmcrXjk/exec',
   SECRET: 'k7pR9xN2mLqW4vJ8sT3yA6bH5cF1eD0zGu',
@@ -416,11 +417,11 @@ const CFG = {
     {
       id:'cf', nombre:'Vectores', dep:'Control focal y bloqueo',
       tools:[
-        { id:'cf_mapa', perm:'cf_carga', icono:'ti-map-pin', titulo:'Mapa de carga', sub:'Registro de focos y puntos de intervención', url:'#TODO_mapa_cf',
+        { id:'cf_mapa', perm:'cf_carga', icono:'ti-map-pin', titulo:'Mapa de carga', sub:'Registro de focos y puntos de intervención',
           url:'https://javiepidec-cmd.github.io/Mapa-carga-Vectores/MAPA-CARGA-CF-BL.html'},
-        { id:'cf_panel', perm:'cf_panel', icono:'ti-chart-bar', titulo:'Panel general', sub:'Indicadores, cobertura y evolución temporal', url:'#TODO_dashboard_cf',
+        { id:'cf_panel', perm:'cf_panel', icono:'ti-chart-bar', titulo:'Panel general', sub:'Indicadores, cobertura y evolución temporal',
           url:'https://javiepidec-cmd.github.io/Dashboard-Vectores/PANEL-GRAL-CF-BL.html'},
-        { id:'cf_boletin', perm:'boletin', icono:'ti-file-text', titulo:'Boletín epidemiológico', sub:'Reporte semanal automatizado', url:'#TODO_boletin',
+        { id:'cf_boletin', perm:'boletin', icono:'ti-file-text', titulo:'Boletín epidemiológico', sub:'Reporte semanal automatizado',
           url:'https://javiepidec-cmd.github.io/Boletin-Vectores/BOLETIN-CF-BL-v2.html'}
       ]
     },
@@ -429,7 +430,7 @@ const CFG = {
       tools:[
         { id:'tr_mapa', perm:'tr_carga', icono:'ti-vaccine', titulo:'Mapa de carga', sub:'Vacunas, leishmaniasis, laboratorio rabia',
           url:'https://javiepidec-cmd.github.io/Mapa-carga-TR/MAPA-RENDICION-TR-V2.html' },
-        { id:'tr_panel', perm:'tr_panel', icono:'ti-layout-dashboard', titulo:'Panel general', sub:'Tres bases integradas: vacunas, leish y lab', url:'#TODO_dashboard_tr',
+        { id:'tr_panel', perm:'tr_panel', icono:'ti-layout-dashboard', titulo:'Panel general', sub:'Tres bases integradas: vacunas, leish y lab',
           url:'https://javiepidec-cmd.github.io/Dashboard-TR/PANEL-GRAL-TR-V2.html' },
       ]
     },
