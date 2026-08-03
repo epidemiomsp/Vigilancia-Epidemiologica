@@ -407,33 +407,13 @@ const CFG = {
   SECRET: 'k7pR9xN2mLqW4vJ8sT3yA6bH5cF1eD0zGu',
 
   ROL_PRESETS: {
-    'operario':      { cf_carga:1, cf_panel:0, tr_carga:1, tr_panel:0, boletin:0, inund_carga:1 },
-    'tecnico':       { cf_carga:1, cf_panel:1, tr_carga:1, tr_panel:1, boletin:1, inund_carga:1 },
-    'directivo':     { cf_carga:1, cf_panel:1, tr_carga:1, tr_panel:1, boletin:1, inund_carga:1 },
-    'administrativo':{ cf_carga:1, cf_panel:1, tr_carga:1, tr_panel:1, boletin:1, inund_carga:1 }
+    'operario':      { inund_carga:1 },
+    'tecnico':       { inund_carga:1 },
+    'directivo':     { inund_carga:1 },
+    'administrativo':{ inund_carga:1 }
   },
 
   SECCIONES: [
-    {
-      id:'cf', nombre:'Vectores', dep:'Control focal y bloqueo',
-      tools:[
-        { id:'cf_mapa', perm:'cf_carga', icono:'ti-map-pin', titulo:'Mapa de carga', sub:'Registro de focos y puntos de intervención',
-          url:'https://javiepidec-cmd.github.io/Mapa-carga-Vectores/MAPA-CARGA-CF-BL.html'},
-        { id:'cf_panel', perm:'cf_panel', icono:'ti-chart-bar', titulo:'Panel general', sub:'Indicadores, cobertura y evolución temporal',
-          url:'https://javiepidec-cmd.github.io/Dashboard-Vectores/PANEL-GRAL-CF-BL.html'},
-        { id:'cf_boletin', perm:'boletin', icono:'ti-file-text', titulo:'Boletín epidemiológico', sub:'Reporte semanal automatizado',
-          url:'https://javiepidec-cmd.github.io/Boletin-Vectores/BOLETIN-CF-BL-v2.html'}
-      ]
-    },
-    {
-      id:'tr', nombre:'Tenencia responsable', dep:'Dir. de Enfermedades Zoonóticas y Vectoriales',
-      tools:[
-        { id:'tr_mapa', perm:'tr_carga', icono:'ti-vaccine', titulo:'Mapa de carga', sub:'Vacunas, leishmaniasis, laboratorio rabia',
-          url:'https://javiepidec-cmd.github.io/Mapa-carga-TR/MAPA-RENDICION-TR-V2.html' },
-        { id:'tr_panel', perm:'tr_panel', icono:'ti-layout-dashboard', titulo:'Panel general', sub:'Tres bases integradas: vacunas, leish y lab',
-          url:'https://javiepidec-cmd.github.io/Dashboard-TR/PANEL-GRAL-TR-V2.html' },
-      ]
-    },
     {
       id:'devz', nombre:'Inundaciones', dep:'Gestión de centros de evacuación',
       tools:[
@@ -442,12 +422,12 @@ const CFG = {
           sub:'Alerta hidrométrica INA y gestión de centros',
           url:'https://javiepidec-cmd.github.io/Mapa-hidrometrico-carga-centro-evacuados/mapa_hidrometrico_v23.html' }
       ]
-    },
+    }
   ]
 };
 
 let SESION = null;
-let PREFS = { view:'cards', orden:['cf','tr','devz'] };
+let PREFS = { view:'cards', orden:['devz'] };
 const OPEN_TOOLS = [];
 let ACTIVE_TOOL_ID = null;
 
@@ -477,22 +457,7 @@ function celda(row, i){
 
 function resolverPermisos(rol, area){
   const rolKey = String(rol||'').toLowerCase().trim();
-  const areaKey = String(area||'').toLowerCase().trim();
   const base = Object.assign({}, CFG.ROL_PRESETS[rolKey] || CFG.ROL_PRESETS['operario']);
-
-  if (rolKey === 'operario' || rolKey === 'tecnico'){
-    if (areaKey === 'cf'){
-      base.tr_carga = 0; base.tr_panel = 0;
-      base.inund_carga = 0;
-    } else if (areaKey === 'tr'){
-      base.cf_carga = 0; base.cf_panel = 0;
-      base.inund_carga = 0;
-    } else if (areaKey === 'devz'){
-      base.cf_carga = 0; base.cf_panel = 0;
-      base.tr_carga = 0; base.tr_panel = 0;
-      base.boletin = 0;
-    }
-  }
   return base;
 }
 
@@ -500,7 +465,7 @@ const ROL_NOMBRES = {
   'operario':'Operario de carga', 'tecnico':'Técnico',
   'directivo':'Directivo', 'administrativo':'Administrativo'
 };
-const AREA_NOMBRES = { 'cf':'Vectores', 'tr':'Tenencia responsable', 'devz':'Inundaciones', 'todas':'Todas las áreas' };
+const AREA_NOMBRES = { 'devz':'Inundaciones', 'todas':'Todas las áreas' };
 
 function displayRolLargo(rol, area){
   const r = ROL_NOMBRES[rol] || rol || '—';
@@ -510,7 +475,7 @@ function displayRolLargo(rol, area){
 }
 
 function displayRolCorto(rol, area){
-  const abrev = { 'cf':'CF', 'tr':'TR', 'devz':'Inund.', 'todas':'Todas' };
+  const abrev = { 'devz':'Inund.', 'todas':'Todas' };
   const r = ROL_NOMBRES[rol] || rol || '—';
   if (rol === 'directivo' || rol === 'administrativo') return r;
   const a = abrev[area] || '';
@@ -848,11 +813,7 @@ function renderPerfil(){
     <div class="p-data-row" style="flex-direction:column;align-items:flex-start;gap:6px">
       <span class="lbl">Permisos asignados</span>
       <div class="p-perm-list">
-        ${chip(p.cf_carga, 'CF carga')}
-        ${chip(p.cf_panel, 'CF panel')}
-        ${chip(p.tr_carga, 'TR carga')}
-        ${chip(p.tr_panel, 'TR panel')}
-        ${chip(p.boletin,  'Boletín')}
+        ${chip(p.inund_carga, 'Inundaciones carga')}
       </div>
     </div>
   `;
