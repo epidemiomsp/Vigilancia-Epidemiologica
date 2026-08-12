@@ -420,7 +420,7 @@ const CFG = {
         { id:'inund_mapa', perm:'inund_carga', icono:'ti-map-pin',
           titulo:'Mapa de centros de evacuación',
           sub:'Alerta hidrométrica INA y gestión de centros',
-          url:'https://javiepidec-cmd.github.io/Mapa-hidrometrico-carga-centro-evacuados/mapa_hidrometrico_v23.html' }
+          url:'https://epidemiomsp.github.io/Mapa-Alerta-Hidrometrico/' }
       ]
     }
   ]
@@ -760,7 +760,9 @@ function abrirTool(id){
   const iframe = document.createElement('iframe');
   iframe.className = 'p-tool-frame';
   iframe.id = 'frame-' + tool.id;
-  iframe.src = tool.url;
+  const iframeUrl = tool.url + (tool.url.includes('?') ? '&' : '?') + 'user=' + encodeURIComponent(SESION.correo);
+  iframe.src = iframeUrl;
+  
   cont.appendChild(iframe);
 
   activarTool(tool.id);
