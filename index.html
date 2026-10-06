@@ -1,898 +1,1575 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vigilancia Epidemiológica — Corrientes</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
-<style>
-:root{
-  --brand:#ECA109; --brand-2:#F8C844; --brand-3:#E64A19; --brand-4:#D9531E;
-  --bg:#F8F9FA; --surface:#fff; --border:#E4E6EA; --border-strong:#D1D5DB;
-  --text:#1F2937; --muted:#6B7280; --dim:#9CA3AF; --accent-bg:#FEF9EB;
-  --ok:#166534; --ok-bg:#DCFCE7; --warn:#92400E; --warn-bg:#FEF3C7; --err:#991B1B; --err-bg:#FEE2E2;
-  --radius:10px; --shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
-}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;font-family:'Barlow',system-ui,sans-serif;color:var(--text);background:var(--bg)}
-body{min-height:100vh}
-button{font-family:inherit;cursor:pointer}
-input,select,button{font-family:inherit;font-size:14px}
-a{color:var(--brand);text-decoration:none}
-.hidden{display:none !important}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Monitoreo Hidrométrico y Centros de Evacuados - Corrientes</title>
 
-/* --- Franja institucional --- */
-.p-stripe{display:flex;height:4px;flex-shrink:0}
-.p-stripe>div{flex:1}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" 
+        onerror="this.onerror=null;this.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-/* ==================== LOGIN ==================== */
-.p-login-wrap{min-height:100vh;display:flex;flex-direction:column;background:var(--bg)}
-.p-login-body{flex:1;display:flex;align-items:center;justify-content:center;padding:24px 16px}
-.p-login-card{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);max-width:400px;width:100%;overflow:hidden}
-.p-login-head{background:var(--brand);color:#fff;padding:20px 24px;display:flex;align-items:center;gap:12px}
-.p-login-logo{width:42px;height:42px;border-radius:50%;background:#fff;color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;letter-spacing:.5px}
-.p-login-head h1{font-size:15px;font-weight:600;margin:0}
-.p-login-head p{font-size:11px;margin:2px 0 0;color:rgba(255,255,255,.9)}
-.p-login-form{padding:24px}
-.p-login-form h2{font-size:16px;font-weight:600;margin:0 0 4px}
-.p-login-form .p-lead{font-size:12px;color:var(--muted);margin:0 0 18px}
-.p-field{margin-bottom:14px}
-.p-field label{display:block;font-size:12px;font-weight:500;color:var(--text);margin-bottom:5px}
-.p-field input,.p-field select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:#fff}
-.p-field input:focus,.p-field select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--accent-bg)}
-.p-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border:none;border-radius:8px;font-size:14px;font-weight:600;background:var(--brand);color:#fff;width:100%}
-.p-btn:hover{background:#d18e07}
-.p-btn:disabled{background:var(--border-strong);cursor:wait}
-.p-btn-ghost{background:transparent;color:var(--brand);border:1px solid var(--border)}
-.p-btn-ghost:hover{background:var(--accent-bg)}
-.p-alert{padding:10px 12px;border-radius:8px;font-size:12px;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
-.p-alert i{font-size:16px;flex-shrink:0}
-.p-alert-err{background:var(--err-bg);color:var(--err)}
-.p-alert-warn{background:var(--warn-bg);color:var(--warn)}
-.p-alert-ok{background:var(--ok-bg);color:var(--ok)}
-.p-link-row{text-align:center;margin-top:14px;font-size:12px;color:var(--muted)}
-.p-link-row button{background:none;border:none;color:var(--brand);font-weight:600;padding:0;font-size:12px}
+  <style>
+    :root {
+      --bg:#121212; --card:#ffffff; --border:#e0e0e0; --txt:#1c1c1e; --txt-dim:#666666;
+      --normal:#719C29; --alerta:#FAAE05; --evac:#F4492E; --primary:#0a84ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--txt); height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+    
+    header { 
+      background: #1a1a1a; 
+      border-bottom: 1px solid #333; 
+      padding: 6px 10px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      z-index: 2000; 
+      min-height: 50px; 
+      gap: 6px; 
+    }
+    .title-area h1 { font-size: 0.95rem; color: #fff; line-height: 1.2; }
+    .title-area p { font-size: 0.68rem; color: #a0a0a0; }
+    .header-actions { display: flex; gap: 4px; align-items: center; flex-wrap: nowrap; }
+    .container { display: flex; flex: 1; position: relative; height: calc(100vh - 50px); height: calc(100dvh - 50px); overflow: hidden; }
+    
+    #sidebar { 
+      width: 380px; 
+      background: #ffffff; 
+      color: #1c1c1e;
+      border-right: 1px solid var(--border); 
+      display: flex; 
+      flex-direction: column; 
+      z-index: 1500; 
+      height: 100%; 
+      position: relative;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform;
+    }
+    #sidebar.collapsed { transform: translateX(-380px); margin-right: -380px; }
+    
+    .tab-bar { display: flex; border-bottom: 1px solid var(--border); background: #f2f2f7; min-height: 42px; align-items: center; flex-shrink: 0; }
+    .tab-btn { flex: 1; padding: 10px 2px; font-size: 0.72rem; background: transparent; border: none; color: #555; cursor: pointer; border-bottom: 2px solid transparent; text-align: center; white-space: nowrap; }
+    .tab-btn.active { color: #000; border-bottom-color: var(--primary); background: #ffffff; font-weight: bold; }
+    
+    .filter-bar { padding: 6px; border-bottom: 1px solid var(--border); display: flex; gap: 4px; background: #ffffff; flex-shrink: 0; }
+    .filter-btn { flex: 1; padding: 6px 4px; font-size: 0.7rem; background: transparent; border: 1px solid #ccc; color: #333; border-radius: 4px; cursor: pointer; }
+    .filter-btn.active { background: #e5e5ea; color: #000; border-color: var(--primary); font-weight: bold; }
+    
+    .sec-tab { flex: 1; display: flex; flex-direction: column; overflow: hidden; height: 100%; }
+    .list { flex: 1; overflow-y: auto !important; padding: 8px; padding-bottom: 40px; -webkit-overflow-scrolling: touch; }
+    .list::-webkit-scrollbar { width: 5px; }
+    .list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    
+    .card { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; margin-bottom: 8px; cursor: pointer; }
+    .card:hover { border-color: #0a84ff; background: #ffffff; }
+    .muni { font-weight: 600; font-size: 0.88rem; color: #1c1c1e; }
+    .rio { font-size: 0.68rem; color: #3a3a3c; background: #e5e5ea; padding: 2px 6px; border-radius: 4px; }
+    .altura { font-size: 1.25rem; font-weight: 700; color: #0a84ff; }
 
-/* ==================== PORTAL ==================== */
-.p-portal{min-height:100vh;display:flex;flex-direction:column}
-.p-head{background:var(--brand);padding:12px 20px;display:flex;align-items:center;gap:14px}
-.p-head .p-logo{width:36px;height:36px;border-radius:50%;background:#fff;color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
-.p-head-txt h1{color:#fff;font-size:15px;font-weight:600;margin:0;line-height:1.2}
-.p-head-txt p{color:rgba(255,255,255,.85);font-size:11px;margin:2px 0 0}
-.p-head-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
-.p-head-actions i{color:rgba(255,255,255,.85);font-size:20px;cursor:pointer}
-.p-head-mobile{display:none;background:none;border:none;color:#fff;font-size:22px}
+    .item-card { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; margin-bottom: 8px; position: relative; font-size: 0.75rem; color: #333; }
+    .item-card:hover { border-color: #0a84ff; background: #ffffff; }
+    .item-title { font-weight: bold; color: #1c1c1e; margin-bottom: 2px; font-size: 0.85rem; padding-right: 50px; }
+    .item-sub { color: #666; font-size: 0.72rem; margin-top: 2px; }
+    .item-badge { display: inline-block; padding: 3px 6px; border-radius: 4px; font-size: 0.68rem; background: #e5e5ea; color: #333; margin-top: 5px; }
+    
+    .card-actions-top { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; }
+    .btn-card-action { background: transparent; border: none; font-size: 0.95rem; cursor: pointer; opacity: 0.8; transition: opacity 0.2s; }
+    .btn-card-action:hover { opacity: 1.0; transform: scale(1.1); }
 
-.p-body{display:flex;flex:1;min-height:0;position:relative;overflow:hidden}
+    #map { flex: 1; height: 100%; background: #191a1a; width: 100%; z-index: 1; cursor: crosshair; }
+    
+    .btn-action { background: var(--primary); color: #fff; border: none; padding: 6px 8px; border-radius: 5px; font-size: 0.72rem; cursor: pointer; font-weight: bold; white-space: nowrap; }
+    .btn-sec { background:#2c2c2e; border:1px solid #3a3a3c; color:#fff; padding:6px 8px; border-radius:5px; cursor:pointer; font-size: 0.72rem; white-space: nowrap; }
 
-/* Sidebar */
-.p-side{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:18px 0;display:flex;flex-direction:column;overflow-y:auto}
-.p-user-box{padding:0 18px 16px;border-bottom:1px solid var(--border);margin-bottom:14px}
-.p-avatar{width:46px;height:46px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;margin-bottom:10px}
-.p-user-name{font-size:14px;font-weight:600;color:var(--text);margin:0}
-.p-role-chip{display:inline-flex;align-items:center;gap:5px;background:var(--accent-bg);color:var(--brand);font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;margin:5px 0 0;text-transform:uppercase;letter-spacing:.3px}
-.p-user-inst{font-size:11px;color:var(--dim);margin:6px 0 0;line-height:1.35}
-.p-nav{padding:0 10px;display:flex;flex-direction:column;gap:2px;flex:1}
-.p-nav-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:7px;font-size:13px;color:#4B5563;background:none;border:none;text-align:left;width:100%;cursor:pointer}
-.p-nav-item i{font-size:16px}
-.p-nav-item:hover{background:var(--bg)}
-.p-nav-item.active{background:var(--accent-bg);color:var(--brand);font-weight:600}
-.p-nav-foot{padding:10px 10px 0;border-top:1px solid var(--border);margin-top:10px}
-.p-nav-foot .p-nav-item{color:var(--brand-3)}
-.p-nav-foot .p-nav-item:hover{background:#FEE2E2}
+    .btn-text-full { display: inline; }
+    .btn-text-short { display: none; }
 
-/* Main */
-.p-main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
-#page-home, #page-perfil, #page-config{flex:1;min-height:0;overflow-y:auto;padding:24px 28px}
-#page-tool{flex:1;min-height:0;display:flex;flex-direction:column}
+    .dept-tooltip {
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid #0a84ff;
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
 
-/* Barra superior de la herramienta embebida */
-.p-tool-bar{flex-shrink:0;background:#fff;border-bottom:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:10px}
-.p-tool-back{background:none;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--brand);font-weight:600;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
-.p-tool-back:hover{background:var(--accent-bg)}
-.p-tool-crumb{flex:1;min-width:0;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.p-tool-crumb strong{color:var(--text);font-weight:600}
-.p-tool-ext{color:var(--muted);font-size:18px;padding:4px 6px;border-radius:6px;display:inline-flex}
-.p-tool-ext:hover{background:var(--accent-bg);color:var(--brand)}
-.p-tool-frame{flex:1;border:0;width:100%;background:#fff;min-height:0}
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 3000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; padding: 12px; }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-box { background: #ffffff; border: 1px solid #ccc; border-radius: 8px; width: 460px; max-width: 95%; padding: 15px; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.25); color: #1c1c1e; box-sizing: border-box; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; }
+    .modal-header h3 { font-size: 0.95rem; color: #1c1c1e; font-weight: bold; }
+    .close-modal { background: none; border: none; color: #666; font-size: 1.3rem; cursor: pointer; }
+    
+    .form-group { margin-bottom: 8px; }
+    .form-group label { display: block; font-size: 0.72rem; color: #555; margin-bottom: 2px; font-weight: 600; }
+    .form-group input, .form-group select { width: 100%; background: #f9f9f9; border: 1px solid #ccc; color: #1c1c1e; padding: 6px; border-radius: 4px; font-size: 0.8rem; outline: none; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--primary); background: #fff; }
+    .form-row-2 { display: flex; gap: 8px; }
+    .form-row-2 .form-group { flex: 1; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 
-/* Indicador de herramienta abierta en el sidebar */
-.p-side-tool{position:relative;cursor:pointer;padding:10px 14px;margin:0 10px 12px;background:var(--accent-bg);border-radius:8px;border-left:3px solid var(--brand)}
-.p-side-tool:hover{background:#FDF2D0}
-.p-side-tool-lbl{font-size:9px;color:var(--brand);margin:0;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
-.p-side-tool-name{font-size:12px;color:var(--text);font-weight:600;margin:3px 0 0}
+    .alert-msg { background: #ffebe9; border: 1px solid #ffc1c0; color: #cf222e; padding: 8px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; margin-bottom: 10px; display: none; }
 
-/* Lista de herramientas abiertas */
-.p-side-tools-list{margin:0 0 8px;display:flex;flex-direction:column;gap:6px}
-.p-side-tools-list .p-side-tool{margin:0 10px}
-.p-side-tools-list .p-side-tool.active{background:#FDF2D0;border-left-width:4px;box-shadow:inset 0 0 0 1px rgba(236,161,9,.2)}
-.p-side-tools-list .p-side-tool.active .p-side-tool-name{color:var(--brand)}
-.p-side-tool-close{position:absolute;top:6px;right:6px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;padding:2px 4px;border-radius:4px}
-.p-side-tool-close:hover{background:rgba(0,0,0,.06);color:var(--text)}
+    #loading { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(18,18,18,0.85); z-index: 2000; display:flex; justify-content:center; align-items:center; color: #fff; font-size: 0.9rem; }
+    .off { display: none !important; }
 
-.p-tool-frames{flex:1;min-height:0;position:relative;overflow:hidden}
-.p-tool-frames .p-tool-frame{position:absolute;top:0;left:0;width:100%;height:100%;border:0;background:#fff;display:none}
-.p-tool-frames .p-tool-frame.active{display:block}
+    .filtro-familia { padding: 6px 8px; border-bottom: 1px solid var(--border); background: #fff; flex-shrink: 0; }
+    .filtro-familia input { width: 100%; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.78rem; }
 
-#view-portal.p-in-tool > .p-head{display:none}
-
-.p-tool-menu{display:none;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:4px 6px;border-radius:6px}
-.p-tool-menu:hover{background:#F0F1F4;color:var(--text)}
-@media (max-width: 900px){ .p-tool-menu{display:inline-flex;align-items:center;justify-content:center} }
-.p-crumb{font-size:11px;color:var(--muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:.3px}
-.p-title{font-size:22px;font-weight:600;color:var(--text);margin:0 0 4px}
-.p-sub{font-size:13px;color:var(--muted);margin:0 0 24px}
-
-.p-sec-head{display:flex;align-items:baseline;gap:10px;margin:0 0 12px}
-.p-sec-dot{width:6px;height:6px;border-radius:50%;background:var(--brand);align-self:center}
-.p-sec-title{font-size:12px;font-weight:600;color:var(--brand);letter-spacing:.5px;text-transform:uppercase;margin:0}
-.p-sec-dep{font-size:11px;color:var(--dim);margin-left:auto}
-
-/* Cards view */
-.p-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px}
-.p-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--brand);border-radius:var(--radius);padding:16px;position:relative;transition:border-color .15s,transform .1s;cursor:pointer}
-.p-card:hover{border-color:var(--brand);transform:translateY(-1px)}
-.p-card.locked{border-left-color:var(--border-strong);background:#FAFAFA;cursor:not-allowed}
-.p-card.locked:hover{transform:none;border-color:var(--border)}
-.p-card.locked .p-card-icon,.p-card.locked .p-card-name,.p-card.locked .p-card-sub,.p-card.locked .p-card-cta{color:var(--dim)}
-.p-card-icon{font-size:22px;color:var(--brand)}
-.p-card-name{font-size:13px;font-weight:600;color:var(--text);margin:10px 0 3px}
-.p-card-sub{font-size:11px;color:var(--muted);margin:0 0 12px;line-height:1.4;min-height:30px}
-.p-card-cta{font-size:11px;color:var(--brand);font-weight:600;padding-top:8px;border-top:1px solid #F0F1F4;display:flex;justify-content:space-between;align-items:center}
-.p-card-lock{position:absolute;top:12px;right:12px;font-size:14px;color:var(--dim)}
-
-/* List view */
-.p-list{display:flex;flex-direction:column;gap:6px;margin-bottom:24px}
-.p-list-item{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--brand);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .15s}
-.p-list-item:hover{border-color:var(--brand)}
-.p-list-item.locked{border-left-color:var(--border-strong);background:#FAFAFA;cursor:not-allowed;color:var(--dim)}
-.p-list-item i.p-li-icon{font-size:20px;color:var(--brand)}
-.p-list-item.locked i.p-li-icon{color:var(--dim)}
-.p-li-body{flex:1;min-width:0}
-.p-li-name{font-size:13px;font-weight:600;color:var(--text);margin:0}
-.p-list-item.locked .p-li-name{color:var(--dim)}
-.p-li-sub{font-size:11px;color:var(--muted);margin:2px 0 0}
-.p-li-arr{font-size:16px;color:var(--brand)}
-.p-list-item.locked .p-li-arr{display:none}
-
-/* Perfil */
-.p-profile-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;max-width:520px}
-.p-profile-row{display:flex;align-items:center;gap:16px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)}
-.p-profile-avatar{width:64px;height:64px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:22px}
-.p-profile-info h3{font-size:18px;font-weight:600;margin:0}
-.p-profile-info p{font-size:12px;color:var(--muted);margin:2px 0 0}
-.p-data-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F0F1F4;font-size:13px}
-.p-data-row:last-child{border-bottom:none}
-.p-data-row .lbl{color:var(--muted)}
-.p-data-row .val{font-weight:500}
-.p-perm-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.p-perm{font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
-.p-perm.on{background:var(--ok-bg);color:var(--ok)}
-.p-perm.off{background:#F3F4F6;color:var(--dim)}
-
-/* Configuración */
-.p-cfg-block{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:14px;max-width:520px}
-.p-cfg-head{display:flex;align-items:center;gap:10px;margin:0 0 14px}
-.p-cfg-head i{font-size:18px;color:var(--brand)}
-.p-cfg-head h4{font-size:14px;font-weight:600;color:var(--text);margin:0}
-.p-cfg-view-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.p-cfg-view-opt{border:1px solid var(--border);border-radius:8px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .15s}
-.p-cfg-view-opt:hover{border-color:var(--brand)}
-.p-cfg-view-opt.sel{border:2px solid var(--brand);background:var(--accent-bg);padding:11px 7px}
-.p-cfg-view-opt i{font-size:22px;color:var(--brand)}
-.p-cfg-view-opt p{font-size:12px;font-weight:500;color:var(--text);margin:5px 0 0}
-.p-cfg-sort{display:flex;flex-direction:column;gap:6px}
-.p-cfg-sort-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#FAFAFA;border:1px solid var(--border);border-radius:6px}
-.p-cfg-sort-item i.grip{color:var(--dim);font-size:16px;cursor:grab}
-.p-cfg-sort-item span{font-size:13px;color:var(--text);flex:1;font-weight:500}
-.p-cfg-sort-item button{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 6px;border-radius:4px}
-.p-cfg-sort-item button:hover{background:var(--surface);color:var(--brand)}
-
-/* Loading spinner */
-.p-spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp 0.7s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
-
-/* Toast */
-.p-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,.2);opacity:0;transition:opacity .2s}
-.p-toast.show{opacity:1}
-
-/* Fondo del drawer */
-.p-side-back{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:15;display:none}
-
-/* Responsive */
-@media (max-width: 900px){
-  .p-side{position:absolute;top:0;bottom:0;left:0;z-index:20;transform:translateX(-100%);transition:transform .2s;box-shadow:2px 0 16px rgba(0,0,0,.15)}
-  .p-side.open{transform:translateX(0)}
-  .p-head-mobile{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:4px 8px}
-  #page-home, #page-perfil, #page-config{padding:18px 16px}
-  .p-title{font-size:19px}
-  .p-side-back.show{display:block}
-}
-</style>
+    @media (max-width: 768px) {
+      .title-area p { display: none; }
+      .title-area h1 { font-size: 0.80rem; }
+      .btn-text-full { display: none; }
+      .btn-text-short { display: inline; }
+      .header-actions { gap: 3px; }
+      .btn-action, .btn-sec { padding: 5px 6px; font-size: 0.68rem; }
+      .container { flex-direction: column; }
+      .modal-box { width: 100% !important; max-width: 100% !important; margin: 0 8px; padding: 12px; max-height: 95vh; }
+      #chartContainer { height: 240px !important; }
+      #grafico-kpis { flex-direction: column !important; align-items: stretch !important; gap: 6px !important; white-space: normal !important; padding: 8px 10px !important; }
+      #sidebar { 
+        width: 100% !important; 
+        height: 55vh !important;
+        height: 55dvh !important; 
+        border-right: none; 
+        border-top: 1px solid var(--border); 
+        position: absolute; 
+        bottom: 0; 
+        left: 0; 
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+        z-index: 1500; 
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+        transform: translateY(0);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      #sidebar.collapsed { transform: translateY(100%) !important; }
+      .tab-bar { background: #f2f2f7; display: flex; align-items: center; height: 40px; min-height: 40px; }
+      .sec-tab { height: calc(100% - 40px) !important; }
+      .list { padding-bottom: 80px !important; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- ==================== LOGIN VIEW ==================== -->
-<div id="view-login" class="p-login-wrap">
-  <div class="p-stripe">
-    <div style="background:#ECA109"></div>
-    <div style="background:#F8C844"></div>
-    <div style="background:#D9531E"></div>
-    <div style="background:#E64A19"></div>
-  </div>
-  <div class="p-login-body">
-    <div class="p-login-card">
-      <div class="p-login-head">
-        <div class="p-login-logo">MSP</div>
-        <div>
-          <h1>Vigilancia Epidemiológica</h1>
-          <p>Ministerio de Salud Pública · Corrientes</p>
-        </div>
-      </div>
-      <div class="p-login-form">
-        <h2>Iniciar sesión</h2>
-        <p class="p-lead">Ingrese su correo.</p>
-
-        <div id="login-alert"></div>
-
-        <div class="p-field">
-          <label for="login-email">Correo</label>
-          <input type="email" id="login-email" placeholder="nombre@mail.com" autocomplete="email">
-        </div>
-
-        <button class="p-btn" id="login-btn" onclick="doLogin()">
-          <i class="ti ti-login-2"></i> Ingresar
-        </button>
-
-        <div class="p-link-row">
-          ¿No tenés cuenta? <button onclick="goSolicitud()">Solicitar acceso</button>
-        </div>
-      </div>
+  <header>
+    <div class="title-area">
+      <h1>Estado Hidrométrico</h1>
+      <p>Provincia de Corrientes - Monitoreo de Ríos y Centros de Evacuados</p>
     </div>
-  </div>
-</div>
-
-<!-- ==================== SOLICITUD VIEW ==================== -->
-<div id="view-solicitud" class="p-login-wrap hidden">
-  <div class="p-stripe">
-    <div style="background:#ECA109"></div>
-    <div style="background:#F8C844"></div>
-    <div style="background:#D9531E"></div>
-    <div style="background:#E64A19"></div>
-  </div>
-  <div class="p-login-body">
-    <div class="p-login-card">
-      <div class="p-login-head">
-        <div class="p-login-logo">MSP</div>
-        <div>
-          <h1>Portal epidemiológico</h1>
-          <p>Ministerio de Salud Pública · Corrientes</p>
-        </div>
-      </div>
-      <div class="p-login-form">
-        <h2>Solicitar acceso</h2>
-        <p class="p-lead">Completá los datos. Un administrador revisará tu solicitud.</p>
-
-        <div id="sol-alert"></div>
-
-        <div class="p-field">
-          <label>Nombre completo</label>
-          <input type="text" id="sol-nombre">
-        </div>
-        <div class="p-field">
-          <label>Correo institucional</label>
-          <input type="email" id="sol-correo">
-        </div>
-        <div class="p-field">
-          <label>Establecimiento / Zona</label>
-          <input type="text" id="sol-establecimiento" placeholder="Ej: Hospital Vidal, Zona II Goya, Dir. Zoonosis">
-        </div>
-
-        <button class="p-btn" id="sol-btn" onclick="doSolicitud()">
-          <i class="ti ti-send"></i> Enviar solicitud
-        </button>
-
-        <div class="p-link-row">
-          <button onclick="goLogin()">← Volver al inicio</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== PORTAL VIEW ==================== -->
-<div id="view-portal" class="p-portal hidden">
-  <div class="p-stripe">
-    <div style="background:#ECA109"></div>
-    <div style="background:#F8C844"></div>
-    <div style="background:#D9531E"></div>
-    <div style="background:#E64A19"></div>
-  </div>
-
-  <header class="p-head">
-    <button class="p-head-mobile" onclick="toggleSide()"><i class="ti ti-menu-2"></i></button>
-    <div class="p-logo">MSP</div>
-    <div class="p-head-txt">
-      <h1>Portal epidemiológico</h1>
-      <p>Ministerio de Salud Pública · Corrientes</p>
-    </div>
-    <div class="p-head-actions">
-      <i class="ti ti-bell" title="Notificaciones"></i>
+    <div class="header-actions">
+      <button class="btn-action" onclick="prepararNuevoCentro()">
+        <span class="btn-text-full">+ Centro</span><span class="btn-text-short">+ 🏠</span>
+      </button>
+      <button class="btn-action" style="background:#28a745;" onclick="prepararNuevaPersona()">
+        <span class="btn-text-full">+ Persona</span><span class="btn-text-short">+ 👤</span>
+      </button>
+      <button class="btn-action" style="background:#17a2b8;" onclick="prepararNuevoMonitoreo()">
+        <span class="btn-text-full">+ Monitoreo</span><span class="btn-text-short">+ 🩺</span>
+      </button>
+      <button class="btn-sec" id="btn-toggle-dptos" onclick="toggleCapaDepartamentos()">🗺️ Dptos</button>
+      <button class="btn-sec" id="btn-toggle-info" onclick="toggleSidebar()">📊 Info</button>
+      <button class="btn-sec" onclick="cargarDatosActualizados()">🔄</button>
     </div>
   </header>
 
-  <div class="p-body">
-    <div class="p-side-back" onclick="toggleSide()"></div>
-    <aside class="p-side" id="side">
-      <div class="p-user-box">
-        <div class="p-avatar" id="side-avatar">--</div>
-        <p class="p-user-name" id="side-name">—</p>
-        <span class="p-role-chip"><i class="ti ti-shield-check" style="font-size:11px"></i><span id="side-rol">—</span></span>
-        <p class="p-user-inst" id="side-inst">—</p>
+  <div class="container">
+    <div id="loading" class="off">Cargando datos...</div>
+
+    <div id="sidebar">
+      <div class="tab-bar">
+        <button class="tab-btn active" id="btn-tab-estaciones" onclick="cambiarPestana('estaciones')">🌊 Ríos</button>
+        <button class="tab-btn" id="btn-tab-centros" onclick="cambiarPestana('centros')">🏠 Centros</button>
+        <button class="tab-btn" id="btn-tab-ingresos" onclick="cambiarPestana('ingresos')">📋 Ingresos</button>
+        <button class="tab-btn" id="btn-tab-monitoreo" onclick="cambiarPestana('monitoreo')">🩺 Monitoreo</button>
       </div>
-      <nav class="p-nav">
-        <div class="p-side-tools-list" id="side-tools-list"></div>
-        <button class="p-nav-item active" data-page="home" onclick="goPage('home')"><i class="ti ti-home"></i>Inicio</button>
-        <button class="p-nav-item" data-page="perfil" onclick="goPage('perfil')"><i class="ti ti-user"></i>Mi perfil</button>
-        <button class="p-nav-item" data-page="config" onclick="goPage('config')"><i class="ti ti-settings"></i>Configuración</button>
-        <div class="p-nav-foot">
-          <button class="p-nav-item" onclick="doLogout()"><i class="ti ti-logout"></i>Cerrar sesión</button>
+
+      <div id="sec-estaciones" class="sec-tab">
+        <div class="filter-bar">
+          <button class="filter-btn active" onclick="filtrar('todos', this)">Todos</button>
+          <button class="filter-btn" onclick="filtrar('Paraná', this)">Río Paraná</button>
+          <button class="filter-btn" onclick="filtrar('Uruguay', this)">Río Uruguay</button>
         </div>
-      </nav>
-    </aside>
+        <div class="list" id="list-estaciones"></div>
+      </div>
 
-    <main class="p-main">
-      <!-- PÁGINA: HOME -->
-      <section id="page-home">
-        <p class="p-crumb">Inicio</p>
-        <h2 class="p-title" id="home-greet">Buen día</h2>
-        <p class="p-sub" id="home-sub">Herramientas disponibles según tu rol.</p>
-        <div id="home-content"></div>
-      </section>
+      <div id="sec-centros" class="sec-tab" style="display:none;">
+        <div class="list" id="list-centros"></div>
+      </div>
 
-      <!-- PÁGINA: PERFIL -->
-      <section id="page-perfil" class="hidden">
-        <p class="p-crumb">Inicio · Mi perfil</p>
-        <h2 class="p-title">Mi perfil</h2>
-        <p class="p-sub">Datos de tu cuenta y permisos asignados.</p>
-        <div class="p-profile-card" id="perfil-content"></div>
-      </section>
+      <div id="sec-ingresos" class="sec-tab" style="display:none;">
+        <div class="filtro-familia">
+          <input type="text" id="filtro-grupo-familiar" placeholder="Filtrar por Grupo Familiar (ej: FAM-012)" oninput="filtrarPorGrupoFamiliar(this.value)">
+        </div>
+        <div class="list" id="list-ingresos"></div>
+      </div>
 
-      <!-- PÁGINA: CONFIG -->
-      <section id="page-config" class="hidden">
-        <p class="p-crumb">Inicio · Configuración</p>
-        <h2 class="p-title">Preferencias</h2>
-        <p class="p-sub">Personalizá cómo ves el portal. Se guardan en este dispositivo.</p>
+      <div id="sec-monitoreo" class="sec-tab" style="display:none;">
+        <div class="list" id="list-monitoreo"></div>
+      </div>
+    </div>
 
-        <div class="p-cfg-block">
-          <div class="p-cfg-head"><i class="ti ti-layout-2"></i><h4>Vista de las herramientas</h4></div>
-          <div class="p-cfg-view-opts">
-            <div class="p-cfg-view-opt" data-view="cards" onclick="setView('cards')"><i class="ti ti-layout-grid"></i><p>Tarjetas</p></div>
-            <div class="p-cfg-view-opt" data-view="list" onclick="setView('list')"><i class="ti ti-list"></i><p>Lista</p></div>
-            <div class="p-cfg-view-opt" data-view="compact" onclick="setView('compact')"><i class="ti ti-layout-rows"></i><p>Compacta</p></div>
+    <div id="map"></div>
+  </div>
+
+  <!-- Modal Centro -->
+  <div class="modal-overlay" id="modalCentro">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalCentroTitulo">Nuevo Centro de Evacuados</h3>
+        <button class="close-modal" onclick="cerrarModal('modalCentro')">&times;</button>
+      </div>
+      <form onsubmit="guardarCentro(event)">
+        <input type="hidden" id="c-id">
+        <div class="form-group"><label>Nombre del Centro *</label><input type="text" id="c-nombre" required placeholder="Ej: Hospital Billinghurst"></div>
+        <div class="form-group"><label>Municipio / Localidad *</label><input type="text" id="c-muni" required placeholder="Ej: Ituzaingó"></div>
+        <div class="form-row-2">
+          <div class="form-group"><label>Evacuados Actuales</label><input type="number" id="c-evacuados" value="0" min="0"></div>
+          <div class="form-group"><label>Capacidad Máxima</label><input type="number" id="c-capacidad" value="100" min="0"></div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group"><label>Latitud *</label><input type="number" step="any" id="c-lat" required placeholder="-27.58688"></div>
+          <div class="form-group"><label>Longitud *</label><input type="number" step="any" id="c-lng" required placeholder="-56.69061"></div>
+        </div>
+        <div class="form-group"><label>Teléfono / Responsable</label><input type="text" id="c-contacto" placeholder="Ej: 3624772121"></div>
+        <div class="form-row-2">
+          <div class="form-group"><label>Baños Operativos</label><input type="number" id="c-banos" value="0"></div>
+          <div class="form-group"><label>Insumos</label><input type="text" id="c-agua" placeholder="Ej: Medicamentos, Sueros, NaDCC"></div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-sec" onclick="cerrarModal('modalCentro')">Cancelar</button>
+          <button type="submit" class="btn-action">Guardar Centro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Persona -->
+  <div class="modal-overlay" id="modalPersona">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalPersonaTitulo">Ingreso de Persona</h3>
+        <button class="close-modal" onclick="cerrarModal('modalPersona')">&times;</button>
+      </div>
+
+      <div id="alertPersona" class="alert-msg"></div>
+
+      <form onsubmit="guardarPersona(event)">
+        <input type="hidden" id="p-idPersona">
+
+        <!-- 1. Centro -->
+        <div class="form-group">
+          <label>Centro de Evacuados *</label>
+          <select id="p-centro" required></select>
+        </div>
+
+        <!-- 2. Grupo Familiar + Rol Familiar -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Grupo Familiar</label>
+            <input type="text" id="p-familia" placeholder="Ej: FAM-012 o apellido del jefe">
+          </div>
+          <div class="form-group">
+            <label>Rol Familiar</label>
+            <select id="p-rol-familiar">
+              <option value="">— Seleccionar —</option>
+              <option value="Jefe de Familia">Jefe de Familia</option>
+              <option value="Cónyuge o Pareja">Cónyuge o Pareja</option>
+              <option value="Hijo / Hija">Hijo / Hija</option>
+              <option value="Adulto Mayor">Adulto Mayor</option>
+              <option value="Otro">Otro</option>
+            </select>
           </div>
         </div>
 
-        <div class="p-cfg-block">
-          <div class="p-cfg-head"><i class="ti ti-arrows-sort"></i><h4>Orden de secciones</h4></div>
-          <div class="p-cfg-sort" id="cfg-sort"></div>
+        <!-- 3. Apellido y Nombre -->
+        <div class="form-group">
+          <label>Apellido y Nombre *</label>
+          <input type="text" id="p-nombre" required placeholder="Ej: Pérez Juan">
         </div>
-      </section>
 
-      <!-- PÁGINA: HERRAMIENTA (iframe) -->
-      <section id="page-tool" class="hidden">
-        <div class="p-tool-bar">
-          <button class="p-tool-menu" onclick="toggleSide()" title="Abrir menú"><i class="ti ti-menu-2"></i></button>
-          <button class="p-tool-back" onclick="goPage('home')"><i class="ti ti-arrow-left"></i>Volver</button>
-          <span class="p-tool-crumb">Inicio · <strong id="tool-title">—</strong></span>
-          <a class="p-tool-ext" id="tool-ext" target="_blank" title="Abrir en pestaña nueva"><i class="ti ti-external-link"></i></a>
+        <!-- 4. DNI (opcional) + Fecha Nacimiento (opcional) -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>DNI / Documento</label>
+            <input type="text" id="p-dni" placeholder="Opcional">
+          </div>
+          <div class="form-group">
+            <label>Fecha de Nacimiento</label>
+            <input type="date" id="p-nac">
+          </div>
         </div>
-        <div class="p-tool-frames" id="tool-frames"></div>
-      </section>
-    </main>
+
+        <!-- 5. Fecha Ingreso + Fecha Egreso -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Fecha de Ingreso</label>
+            <input type="date" id="p-fecha">
+          </div>
+          <div class="form-group">
+            <label>Fecha de Egreso</label>
+            <input type="date" id="p-egreso">
+          </div>
+        </div>
+
+        <!-- 6. Sexo + Grupo Etario -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Sexo</label>
+            <select id="p-sexo">
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Grupo Etario</label>
+            <select id="p-grupo-etario">
+              <option value="< 1 año">&lt; 1 año</option>
+              <option value="1 a 4 años">1 a 4 años</option>
+              <option value="5 a 14 años">5 a 14 años</option>
+              <option value="15 a 24 años">15 a 24 años</option>
+              <option value="25 a 49 años" selected>25 a 49 años</option>
+              <option value="50 a 64 años">50 a 64 años</option>
+              <option value="65+ años">65+ años</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 7. Ubicación + Origen -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Ubicación (dentro del centro)</label>
+            <input type="text" id="p-ubicacion" placeholder="Ej: Aula 3, Carpa 12">
+          </div>
+          <div class="form-group">
+            <label>Origen (dirección o barrio)</label>
+            <input type="text" id="p-origen" placeholder="Ej: Barrio Centro, calle X">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-sec" onclick="cerrarModal('modalPersona')">Cancelar</button>
+          <button type="button" class="btn-action" style="background:#6c757d;" onclick="guardarPersonaYSeguir(event)">Guardar y seguir en familia</button>
+          <button type="submit" class="btn-action" style="background:#28a745;">Guardar Registro</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
 
-<div class="p-toast" id="toast"></div>
+  <!-- Modal Monitoreo -->
+  <div class="modal-overlay" id="modalMonitoreo">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalMonitoreoTitulo">Registro Monitoreo Diario</h3>
+        <button class="close-modal" onclick="cerrarModal('modalMonitoreo')">&times;</button>
+      </div>
+      <div id="alertMonitoreo" class="alert-msg"></div>
+      <form onsubmit="guardarMonitoreo(event)">
+        <input type="hidden" id="m-idPersona">
+        <div class="form-group">
+          <label>Centro de Evacuados *</label>
+          <select id="m-centro" required></select>
+        </div>
+        <div class="form-group"><label>Nombre y Apellido *</label><input type="text" id="m-nombre" required></div>
+        <div class="form-row-2">
+          <div class="form-group"><label>DNI</label><input type="text" id="m-dni"></div>
+          <div class="form-group"><label>Edad</label><input type="number" id="m-edad"></div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>¿Embarazada?</label>
+            <select id="m-embarazada"><option value="NO">NO</option><option value="SI">SI</option></select>
+          </div>
+          <div class="form-group">
+            <label>¿Discapacidad?</label>
+            <select id="m-discapacidad"><option value="NO">NO</option><option value="SI">SI</option></select>
+          </div>
+        </div>
+        <div class="form-group"><label>Medicación Requerida</label><input type="text" id="m-medicacion" placeholder="Ej: Enalapril 10mg"></div>
+        <div class="form-group"><label>Síntomas / Observaciones Sanitarias</label><input type="text" id="m-sintomas"></div>
+        <div class="form-actions">
+          <button type="button" class="btn-sec" onclick="cerrarModal('modalMonitoreo')">Cancelar</button>
+          <button type="submit" class="btn-action" style="background:#17a2b8;">Guardar Monitoreo</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-<script>
-const CFG = {
-  // ID actualizado de la planilla nueva
-  SHEET_ID: '1t6sUeIwUPyTqUWppG7hF_iCRZksQVa2RKU3fG04aZis',
-  USUARIOS_SHEET: 'USUARIOS',
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwgLrRuhtSp6jkZ8vpqt-RyVnEl7JW2zPaVq3jTNEzV9-eIxJiLtqmz509Izz14n83vZg/exec',
-  SECRET: 'k7pR9xN2mLqW4vJ8sT3yA6bH5cF1eD0zGu',
+  <div class="modal-overlay" id="modalInsumos">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="insumos-titulo">Detalle de Insumos</h3>
+        <button class="close-modal" onclick="cerrarModal('modalInsumos')">&times;</button>
+      </div>
+      <div style="padding: 10px 0; font-size: 0.9rem; color: #1c1c1e;">
+        <p style="color: #666; margin-bottom: 6px; font-size: 0.75rem;">Insumos y recursos registrados:</p>
+        <div id="insumos-contenido" style="background: #f8f9fa; border: 1px solid #e0e0e0; padding: 12px; border-radius: 6px; white-space: pre-wrap; font-family: monospace; color: #1c1c1e;">
+          Sin registrar
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-sec" onclick="cerrarModal('modalInsumos')">Cerrar</button>
+      </div>
+    </div>
+  </div>
 
-  ROL_PRESETS: {
-    'operario':      { inund_carga:1 },
-    'tecnico':       { inund_carga:1 },
-    'directivo':     { inund_carga:1 },
-    'administrativo':{ inund_carga:1 }
-  },
+  <div class="modal-overlay" id="modalGrafico">
+    <div class="modal-box" style="width: 720px; max-width: 96%;">
+      <div class="modal-header" style="flex-direction: column; align-items: flex-start; gap: 2px;">
+        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+          <h3 id="grafico-titulo" style="margin: 0;">Evolución Hidrométrica</h3>
+          <button class="close-modal" onclick="cerrarModal('modalGrafico')">&times;</button>
+        </div>
+        <div id="grafico-subtitulo" style="font-size: 0.78rem; color: #666; font-weight: 500; margin-top: 2px;"></div>
+      </div>
+      <div id="chartContainer" style="position: relative; height: 300px; width: 100%; margin-top: 8px;">
+        <canvas id="chartEvolucion"></canvas>
+      </div>
+      <div id="grafico-kpis" style="
+        display: flex; flex-wrap: nowrap; justify-content: space-between; align-items: center;
+        gap: 8px; margin-top: 12px; padding: 10px 14px;
+        background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px;
+        font-size: 0.72rem; color: #333; line-height: 1.4; white-space: nowrap;
+      ">
+        <div><b>Observaciones:</b> <span id="kpi-obs">–</span></div>
+        <div><b>Última:</b> <span id="kpi-ultima">–</span></div>
+        <div><b>Variación:</b> <span id="kpi-variacion">–</span></div>
+        <div><b>Máx:</b> <span id="kpi-max">–</span> &nbsp; <b>Mín:</b> <span id="kpi-min">–</span></div>
+      </div>
+      <div class="form-actions" style="margin-top: 12px;">
+        <button type="button" class="btn-sec" onclick="cerrarModal('modalGrafico')">Cerrar</button>
+      </div>
+    </div>
+  </div>
 
-  SECCIONES: [
-    {
-      id:'devz', nombre:'Inundaciones', dep:'Gestión de centros de evacuación',
-      tools:[
-        { id:'inund_mapa', perm:'inund_carga', icono:'ti-map-pin',
-          titulo:'Mapa de centros de evacuación',
-          sub:'Alerta hidrométrica INA y gestión de centros',
-          url:'https://epidemiomsp.github.io/Mapa-Alerta-Hidrometrico/' }
-      ]
-    }
-  ]
-};
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <script>
+    // ============================================================
+    // CONFIGURACIÓN
+    // ============================================================
+    const CONFIG = {
+      // ⚠️ IMPORTANTE: Reemplaza por un token real y guárdalo también
+      // en Script Properties del Apps Script (clave: API_TOKEN).
+      // Nunca subas el token real a un repositorio público.
+      API_TOKEN: 'CAMBIAR_POR_TOKEN_SECRETO_FUERTE',
 
-let SESION = null;
-let PREFS = { view:'cards', orden:['devz'] };
-const OPEN_TOOLS = [];
-let ACTIVE_TOOL_ID = null;
+      URL_BASE_DATOS: "https://script.google.com/macros/s/AKfycbwIDs7pZNRWdHRV0OQfLxdlddRznMMGBpQCihHvBXsZPaKGYBMW_bw3ullei2HzXKAH1A/exec",
+      URL_RIOS: "https://script.google.com/macros/s/AKfycbyMdSOrgWQo2z9eAAtGSHaIbmR04pJwyj1KcP44hnKNU9pbDuGlrPXTsSZ2RMG8rmLU/exec",
 
-function $(id){ return document.getElementById(id); }
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function initials(name){ return String(name||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase() || '—'; }
-function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
-
-function showAlert(container, type, msg){
-  container.innerHTML = `<div class="p-alert p-alert-${type}"><i class="ti ti-${type==='err'?'alert-circle':type==='ok'?'circle-check':'info-circle'}"></i><span>${esc(msg)}</span></div>`;
-}
-
-async function gvizGet(sheet){
-  const url = `https://docs.google.com/spreadsheets/d/${CFG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheet)}`;
-  const r = await fetch(url);
-  const txt = await r.text();
-  const m = txt.match(/setResponse\((.+)\)/s) || txt.match(/google\.visualization\.Query\.setResponse\((.+)\);?/s);
-  if (!m) throw new Error('gviz: respuesta inesperada');
-  return JSON.parse(m[1]);
-}
-
-function celda(row, i){
-  const c = row.c && row.c[i];
-  if (!c) return '';
-  return c.f != null ? c.f : (c.v != null ? c.v : '');
-}
-
-function resolverPermisos(rol, area){
-  const rolKey = String(rol||'').toLowerCase().trim();
-  const base = Object.assign({}, CFG.ROL_PRESETS[rolKey] || CFG.ROL_PRESETS['operario']);
-  return base;
-}
-
-const ROL_NOMBRES = {
-  'operario':'Operario de carga', 'tecnico':'Técnico',
-  'directivo':'Directivo', 'administrativo':'Administrativo'
-};
-const AREA_NOMBRES = { 'devz':'Inundaciones', 'todas':'Todas las áreas' };
-
-function displayRolLargo(rol, area){
-  const r = ROL_NOMBRES[rol] || rol || '—';
-  if (rol === 'directivo' || rol === 'administrativo') return r;
-  const a = AREA_NOMBRES[area] || area;
-  return a ? `${r} — ${a}` : r;
-}
-
-function displayRolCorto(rol, area){
-  const abrev = { 'devz':'Inund.', 'todas':'Todas' };
-  const r = ROL_NOMBRES[rol] || rol || '—';
-  if (rol === 'directivo' || rol === 'administrativo') return r;
-  const a = abrev[area] || '';
-  return a ? `${r} · ${a}` : r;
-}
-
-async function doLogin(){
-  const email = $('login-email').value.trim().toLowerCase();
-  const alertBox = $('login-alert');
-  alertBox.innerHTML = '';
-
-  if (!email || !email.includes('@')){
-    showAlert(alertBox, 'err', 'Ingresá un correo válido.');
-    return;
-  }
-
-  const btn = $('login-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="p-spin"></span> Verificando...';
-
-  try {
-    const data = await gvizGet(CFG.USUARIOS_SHEET);
-    const rows = (data.table && data.table.rows) || [];
-    const row = rows.find(r => String(celda(r, 0)||'').toLowerCase().trim() === email);
-
-    if (!row){
-      showAlert(alertBox, 'warn', 'Tu correo no está registrado. Solicitá acceso desde el link de abajo.');
-      btn.disabled = false;
-      btn.innerHTML = '<i class="ti ti-login-2"></i> Ingresar';
-      return;
-    }
-
-    const estado = String(celda(row, 1)||'').toUpperCase().trim();
-    if (estado === 'PENDIENTE'){
-      showAlert(alertBox, 'warn', 'Tu solicitud está pendiente de aprobación.');
-      btn.disabled = false;
-      btn.innerHTML = '<i class="ti ti-login-2"></i> Ingresar';
-      return;
-    }
-    if (estado === 'RECHAZADO'){
-      showAlert(alertBox, 'err', 'Tu acceso fue rechazado. Contactá al administrador.');
-      btn.disabled = false;
-      btn.innerHTML = '<i class="ti ti-login-2"></i> Ingresar';
-      return;
-    }
-    if (estado !== 'APROBADO'){
-      showAlert(alertBox, 'err', 'Estado de cuenta desconocido. Contactá al administrador.');
-      btn.disabled = false;
-      btn.innerHTML = '<i class="ti ti-login-2"></i> Ingresar';
-      return;
-    }
-
-    const rol = String(celda(row, 6)||'operario').toLowerCase().trim();
-    const area = String(celda(row, 7)||'').toLowerCase().trim();
-    const muniAsignado = String(celda(row, 9)||'').trim();
-    SESION = {
-      correo: email,
-      nombre: celda(row, 4) || email.split('@')[0],
-      establecimiento: celda(row, 5) || '—',
-      rol: rol,
-      area: area,
-      muni_asignado: muniAsignado,
-      permisos: resolverPermisos(rol, area),
-      ts: Date.now()
+      // Tiempo máximo de espera para las peticiones (ms)
+      FETCH_TIMEOUT: 15000
     };
 
-    localStorage.setItem('portal_sesion', JSON.stringify(SESION));
-    entrarPortal();
-
-  } catch(e){
-    console.error(e);
-    showAlert(alertBox, 'err', 'No se pudo conectar. Verificá tu internet.');
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-login-2"></i> Ingresar';
-  }
-}
-
-async function doSolicitud(){
-  const nombre = $('sol-nombre').value.trim();
-  const correo = $('sol-correo').value.trim().toLowerCase();
-  const est = $('sol-establecimiento').value.trim();
-  const alertBox = $('sol-alert');
-  alertBox.innerHTML = '';
-
-  if (!nombre || !correo || !est){
-    showAlert(alertBox, 'err', 'Completá todos los campos.');
-    return;
-  }
-  if (!correo.includes('@')){
-    showAlert(alertBox, 'err', 'Correo inválido.');
-    return;
-  }
-
-  const btn = $('sol-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="p-spin"></span> Enviando...';
-
-  try {
-    const resp = await fetch(CFG.APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        secret: CFG.SECRET,
-        action: 'registrar_usuario',
-        payload: { correo, nombre, establecimiento: est }
-      })
-    });
-    const j = await resp.json().catch(()=>({}));
-
-    if (j && (j.ok === true || j.status === 'ok')){
-      showAlert(alertBox, 'ok', 'Solicitud enviada. Un administrador la revisará.');
-      $('sol-nombre').value = ''; $('sol-correo').value = ''; $('sol-establecimiento').value = '';
-    } else {
-      const err = (j && (j.error || j.mensaje)) || 'No se pudo procesar la solicitud';
-      showAlert(alertBox, 'err', 'No se registró: ' + err);
+    // ============================================================
+    // UTILIDADES DE SEGURIDAD Y ROBUSTEZ
+    // ============================================================
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
-  } catch(e){
-    console.error(e);
-    showAlert(alertBox, 'err', 'No se pudo enviar. Intentá más tarde.');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-send"></i> Enviar solicitud';
-  }
-}
 
-function goLogin(){ $('view-login').classList.remove('hidden'); $('view-solicitud').classList.add('hidden'); $('view-portal').classList.add('hidden'); }
-function goSolicitud(){ $('view-login').classList.add('hidden'); $('view-solicitud').classList.remove('hidden'); $('view-portal').classList.add('hidden'); }
-function entrarPortal(){
-  $('view-login').classList.add('hidden'); $('view-solicitud').classList.add('hidden'); $('view-portal').classList.remove('hidden');
-  renderSidebar(); renderHome();
-}
+    function generarId(prefijo = 'ID') {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return `${prefijo}-${crypto.randomUUID()}`;
+      }
+      // Fallback para navegadores muy antiguos
+      return `${prefijo}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    }
 
-function goPage(p){
-  ['home','perfil','config','tool'].forEach(k=>{
-    $('page-'+k).classList.toggle('hidden', k!==p);
-  });
-  document.querySelectorAll('.p-nav-item[data-page]').forEach(b=>b.classList.toggle('active', b.dataset.page===p));
-  if (p==='perfil') renderPerfil();
-  if (p==='config') renderConfig();
-  $('view-portal').classList.toggle('p-in-tool', p==='tool');
-  toggleSide(true);
-}
+    async function fetchConTimeout(url, options = {}, timeout = CONFIG.FETCH_TIMEOUT) {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeout);
 
-function cerrarTool(id){
-  if (id === undefined){
-    OPEN_TOOLS.forEach(t => {
-      const f = $('frame-'+t.id); if (f) f.remove();
-    });
-    OPEN_TOOLS.length = 0;
-    ACTIVE_TOOL_ID = null;
-    renderSideTools();
-    if (!$('page-tool').classList.contains('hidden')) goPage('home');
-    return;
-  }
-  const idx = OPEN_TOOLS.findIndex(t => t.id === id);
-  if (idx < 0) return;
-  const era_activa = (ACTIVE_TOOL_ID === id);
-  OPEN_TOOLS.splice(idx, 1);
-  const iframeEl = $('frame-'+id); if (iframeEl) iframeEl.remove();
-
-  if (OPEN_TOOLS.length === 0){
-    ACTIVE_TOOL_ID = null;
-    renderSideTools();
-    if (!$('page-tool').classList.contains('hidden')) goPage('home');
-    return;
-  }
-  if (era_activa){
-    const nueva = OPEN_TOOLS[Math.min(idx, OPEN_TOOLS.length - 1)];
-    activarTool(nueva.id);
-  } else {
-    renderSideTools();
-  }
-}
-
-function toggleSide(forceClose){
-  const s = $('side'); const b = document.querySelector('.p-side-back');
-  if (forceClose === true){ s.classList.remove('open'); b.classList.remove('show'); return; }
-  const open = s.classList.toggle('open');
-  b.classList.toggle('show', open);
-}
-
-function renderSidebar(){
-  $('side-avatar').textContent = initials(SESION.nombre);
-  $('side-name').textContent = SESION.nombre;
-  $('side-rol').textContent = displayRolCorto(SESION.rol, SESION.area);
-  $('side-inst').textContent = SESION.establecimiento;
-}
-
-function saludoHora(){
-  const h = new Date().getHours();
-  if (h < 12) return 'Buen día';
-  if (h < 20) return 'Buenas tardes';
-  return 'Buenas noches';
-}
-
-function renderHome(){
-  const primerNombre = SESION.nombre.split(' ')[0] || '';
-  $('home-greet').textContent = `${saludoHora()}, ${primerNombre}`;
-  const habilitadas = contarHabilitadas();
-  $('home-sub').textContent = habilitadas === 0
-    ? 'No tenés herramientas asignadas. Consultá con el administrador.'
-    : `Tenés acceso a ${habilitadas} ${habilitadas===1?'herramienta':'herramientas'}.`;
-
-  const cont = $('home-content');
-  cont.innerHTML = '';
-
-  const ordenadas = PREFS.orden.map(id => CFG.SECCIONES.find(s => s.id === id)).filter(Boolean);
-  CFG.SECCIONES.forEach(s => { if (!ordenadas.includes(s)) ordenadas.push(s); });
-
-  ordenadas.forEach(sec => {
-    cont.innerHTML += `
-      <div class="p-sec-head">
-        <div class="p-sec-dot"></div>
-        <p class="p-sec-title">${esc(sec.nombre)}</p>
-        <span class="p-sec-dep">${esc(sec.dep)}</span>
-      </div>
-      ${PREFS.view === 'list' || PREFS.view === 'compact' ? renderListSection(sec) : renderCardsSection(sec)}
-    `;
-  });
-}
-
-function renderCardsSection(sec){
-  const html = sec.tools.map(t => {
-    const habil = !!SESION.permisos[t.perm];
-    const cls = habil ? 'p-card' : 'p-card locked';
-    const attr = habil ? `onclick="abrirTool('${t.id}')"` : '';
-    const lock = habil ? '' : '<i class="ti ti-lock p-card-lock"></i>';
-    return `
-      <div class="${cls}" ${attr}>
-        ${lock}
-        <i class="ti ${t.icono} p-card-icon"></i>
-        <p class="p-card-name">${esc(t.titulo)}</p>
-        <p class="p-card-sub">${esc(t.sub)}</p>
-        <div class="p-card-cta"><span>${habil?'Abrir':'Sin permiso'}</span>${habil?'<i class="ti ti-arrow-right"></i>':''}</div>
-      </div>`;
-  }).join('');
-  return `<div class="p-grid">${html}</div>`;
-}
-
-function renderListSection(sec){
-  const html = sec.tools.map(t => {
-    const habil = !!SESION.permisos[t.perm];
-    const cls = habil ? 'p-list-item' : 'p-list-item locked';
-    const attr = habil ? `onclick="abrirTool('${t.id}')"` : '';
-    return `
-      <div class="${cls}" ${attr}>
-        <i class="ti ${t.icono} p-li-icon"></i>
-        <div class="p-li-body">
-          <p class="p-li-name">${esc(t.titulo)}</p>
-          <p class="p-li-sub">${esc(habil?t.sub:'Sin permiso — contactá al administrador')}</p>
-        </div>
-        ${habil?'<i class="ti ti-arrow-right p-li-arr"></i>':'<i class="ti ti-lock p-li-arr" style="color:var(--dim)"></i>'}
-      </div>`;
-  }).join('');
-  return `<div class="p-list">${html}</div>`;
-}
-
-function contarHabilitadas(){
-  let n = 0;
-  CFG.SECCIONES.forEach(s => s.tools.forEach(t => { if (SESION.permisos[t.perm]) n++; }));
-  return n;
-}
-
-function abrirTool(id){
-  let tool = null;
-  CFG.SECCIONES.forEach(s => s.tools.forEach(t => { if (t.id === id) tool = t; }));
-  if (!tool) return;
-  if (!tool.url || tool.url.startsWith('#')) {
-    toast('Esta herramienta todavía no está disponible.');
-    return;
-  }
-
-  const yaAbierta = OPEN_TOOLS.find(t => t.id === id);
-  if (yaAbierta){
-    activarTool(id);
-    goPage('tool');
-    return;
-  }
-
-  OPEN_TOOLS.push({ id: tool.id, titulo: tool.titulo, url: tool.url });
-  const cont = $('tool-frames');
-  const iframe = document.createElement('iframe');
-  iframe.className = 'p-tool-frame';
-  iframe.id = 'frame-' + tool.id;
-  const iframeUrl = tool.url + (tool.url.includes('?') ? '&' : '?') + 'user=' + encodeURIComponent(SESION.correo);
-  iframe.src = iframeUrl;
-  
-  cont.appendChild(iframe);
-
-  activarTool(tool.id);
-  goPage('tool');
-}
-
-function activarTool(id){
-  const tool = OPEN_TOOLS.find(t => t.id === id);
-  if (!tool) return;
-  ACTIVE_TOOL_ID = id;
-  document.querySelectorAll('#tool-frames .p-tool-frame').forEach(f => {
-    f.classList.toggle('active', f.id === 'frame-' + id);
-  });
-  $('tool-title').textContent = tool.titulo;
-  $('tool-ext').href = tool.url;
-  renderSideTools();
-}
-
-function renderSideTools(){
-  const cont = $('side-tools-list');
-  if (!cont) return;
-  cont.innerHTML = OPEN_TOOLS.map(t => `
-    <div class="p-side-tool ${t.id === ACTIVE_TOOL_ID ? 'active' : ''}"
-         onclick="activarTool('${t.id}'); goPage('tool')"
-         title="Ir a ${esc(t.titulo)}">
-      <button class="p-side-tool-close"
-              onclick="event.stopPropagation();cerrarTool('${t.id}')"
-              title="Cerrar herramienta"><i class="ti ti-x"></i></button>
-      <p class="p-side-tool-lbl">Herramienta abierta</p>
-      <p class="p-side-tool-name">${esc(t.titulo)}</p>
-    </div>`).join('');
-}
-
-function renderPerfil(){
-  const p = SESION.permisos;
-  const chip = (on, txt) => `<span class="p-perm ${on?'on':'off'}">${txt}</span>`;
-  const areaLegible = AREA_NOMBRES[SESION.area] || (SESION.area || '—');
-  const mostrarArea = SESION.rol === 'operario' || SESION.rol === 'tecnico';
-  $('perfil-content').innerHTML = `
-    <div class="p-profile-row">
-      <div class="p-profile-avatar">${initials(SESION.nombre)}</div>
-      <div class="p-profile-info">
-        <h3>${esc(SESION.nombre)}</h3>
-        <p>${esc(SESION.correo)}</p>
-      </div>
-    </div>
-    <div class="p-data-row"><span class="lbl">Rol</span><span class="val">${esc(ROL_NOMBRES[SESION.rol] || SESION.rol)}</span></div>
-    ${mostrarArea ? `<div class="p-data-row"><span class="lbl">Área</span><span class="val">${esc(areaLegible)}</span></div>` : ''}
-    <div class="p-data-row"><span class="lbl">Establecimiento</span><span class="val">${esc(SESION.establecimiento)}</span></div>
-    <div class="p-data-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-      <span class="lbl">Permisos asignados</span>
-      <div class="p-perm-list">
-        ${chip(p.inund_carga, 'Inundaciones carga')}
-      </div>
-    </div>
-  `;
-}
-
-function renderConfig(){
-  document.querySelectorAll('.p-cfg-view-opt').forEach(o => {
-    o.classList.toggle('sel', o.dataset.view === PREFS.view);
-  });
-  const cont = $('cfg-sort');
-  cont.innerHTML = '';
-  PREFS.orden.forEach((id, idx) => {
-    const sec = CFG.SECCIONES.find(s => s.id === id); if (!sec) return;
-    cont.innerHTML += `
-      <div class="p-cfg-sort-item">
-        <i class="ti ti-grip-vertical grip"></i>
-        <span>${esc(sec.nombre)}</span>
-        <button ${idx===0?'disabled style="opacity:.3"':''} onclick="moverSec(${idx},-1)"><i class="ti ti-arrow-up"></i></button>
-        <button ${idx===PREFS.orden.length-1?'disabled style="opacity:.3"':''} onclick="moverSec(${idx},1)"><i class="ti ti-arrow-down"></i></button>
-      </div>`;
-  });
-}
-
-function setView(v){
-  PREFS.view = v;
-  guardarPrefs();
-  document.querySelectorAll('.p-cfg-view-opt').forEach(o => o.classList.toggle('sel', o.dataset.view === v));
-  renderHome();
-  toast('Vista actualizada');
-}
-
-function moverSec(idx, delta){
-  const nuevoIdx = idx + delta;
-  if (nuevoIdx < 0 || nuevoIdx >= PREFS.orden.length) return;
-  const arr = PREFS.orden.slice();
-  [arr[idx], arr[nuevoIdx]] = [arr[nuevoIdx], arr[idx]];
-  PREFS.orden = arr;
-  guardarPrefs();
-  renderConfig();
-  renderHome();
-}
-
-function guardarPrefs(){ localStorage.setItem('portal_prefs_v1', JSON.stringify(PREFS)); }
-
-function doLogout(){
-  if (!confirm('¿Cerrar sesión?')) return;
-  localStorage.removeItem('portal_sesion');
-  cerrarTool();
-  SESION = null;
-  goLogin();
-  $('login-email').value = '';
-  $('login-alert').innerHTML = '';
-}
-
-(function init(){
-  try {
-    const p = JSON.parse(localStorage.getItem('portal_prefs_v1') || 'null');
-    if (p && p.view) PREFS.view = p.view;
-    if (p && Array.isArray(p.orden)) PREFS.orden = p.orden;
-  } catch(e){}
-
-  try {
-    const s = JSON.parse(localStorage.getItem('portal_sesion') || 'null');
-    if (s && s.correo && s.permisos){
-      const edadHs = (Date.now() - (s.ts||0)) / (1000*60*60);
-      if (edadHs < 12){
-        SESION = s;
-        entrarPortal();
-        return;
-      } else {
-        localStorage.removeItem('portal_sesion');
+      try {
+        const res = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+        clearTimeout(id);
+        return res;
+      } catch (err) {
+        clearTimeout(id);
+        throw err;
       }
     }
-  } catch(e){}
 
-  $('login-email').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-})();
-</script>
+    // ============================================================
+    // ESTADO GLOBAL
+    // ============================================================
+    let map, tempMarker = null;
+    let markersEstaciones = [], markersCentros = [];
+    let estacionesData = [], centrosData = [], personasData = [], monitoreoData = [];
+    let miChart = null;
+    let capaDepartamentos = null;
+    let departamentosVisibles = false;
+    let ultimoGrupoFamiliar = localStorage.getItem('ultimoGrupoFamiliar') || "";
+
+    function formatearFechaLatina(fechaStr) {
+      if (!fechaStr) return "";
+      const partes = String(fechaStr).trim().split('-');
+      if (partes.length === 3 && partes[0].length === 4) {
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+      }
+      return fechaStr;
+    }
+
+    function parsearFechaParaInput(fechaStr) {
+      if (!fechaStr) return "";
+      const partes = String(fechaStr).trim().split('/');
+      if (partes.length === 3) {
+        const dia = partes[0].padStart(2, '0');
+        const mes = partes[1].padStart(2, '0');
+        const anio = partes[2];
+        return `${anio}-${mes}-${dia}`;
+      }
+      return fechaStr;
+    }
+
+    const ESTACIONES = [
+      { id: 48, muni:"Ituzaingó",           depto:"Ituzaingó",          rio:"Paraná", siteCode:15, seriesId:15, lat:-27.5896, lng:-56.6819, alerta:3.50, evacuacion:4.00, aguasBajas:0.81 },
+      { id: 46, muni:"Itá Ibaté",           depto:"General Paz",        rio:"Paraná", siteCode:16, seriesId:16, lat:-27.4290, lng:-57.3282, alerta:7.00, evacuacion:7.50, aguasBajas:1.34 },
+      { id: 45, muni:"Itatí",               depto:"Itatí",              rio:"Paraná", siteCode:17, seriesId:17, lat:-27.2727, lng:-58.2454, alerta:6.80, evacuacion:7.50, aguasBajas:2.70 },
+      { id: 44, muni:"Paso de la Patria",   depto:"San Cosme",          rio:"Paraná", siteCode:18, seriesId:18, lat:-27.3175, lng:-58.5757, alerta:6.50, evacuacion:7.00, aguasBajas:2.20 },
+      { id: 43, muni:"Corrientes",          depto:"Capital",            rio:"Paraná", siteCode:19, seriesId:19, lat:-27.4692, lng:-58.8306, alerta:6.50, evacuacion:7.00, aguasBajas:1.83 },
+      { id: 42, muni:"Empedrado",           depto:"Empedrado",          rio:"Paraná", siteCode:21, seriesId:21, lat:-27.9522, lng:-58.8054, alerta:6.50, evacuacion:6.70, aguasBajas:2.80 },
+      { id: 41, muni:"Bella Vista",         depto:"Bella Vista",        rio:"Paraná", siteCode:22, seriesId:22, lat:-28.5099, lng:-59.0300, alerta:6.00, evacuacion:6.40, aguasBajas:3.00 },
+      { id: 40, muni:"Goya",                depto:"Goya",               rio:"Paraná", siteCode:23, seriesId:23, lat:-29.1400, lng:-59.2600, alerta:5.20, evacuacion:5.70, aguasBajas:2.23 },
+      { id: 39, muni:"Esquina",             depto:"Esquina",            rio:"Paraná", siteCode:25, seriesId:25, lat:-30.0135, lng:-59.5286, alerta:5.00, evacuacion:5.40, aguasBajas:2.20 },
+      { id: 67, muni:"Santo Tomé",          depto:"Santo Tomé",         rio:"Uruguay", siteCode:68, seriesId:68, lat:-28.5462, lng:-56.0455, alerta:11.50, evacuacion:12.50, aguasBajas:1.32 },
+      { id: 68, muni:"Alvear",              depto:"General Alvear",     rio:"Uruguay", siteCode:69, seriesId:69, lat:-29.0982, lng:-56.5546, alerta:9.50, evacuacion:11.00, aguasBajas:0.89 },
+      { id: 69, muni:"Yapeyú",              depto:"San Martín",         rio:"Uruguay", siteCode:71, seriesId:71, lat:-29.4694, lng:-56.8180, alerta:9.50, evacuacion:10.50, aguasBajas:0.00 },
+      { id: 70, muni:"Paso de los Libres",  depto:"Paso de los Libres", rio:"Uruguay", siteCode:72, seriesId:72, lat:-29.7130, lng:-57.0870, alerta:7.50, evacuacion:8.50, aguasBajas:0.90 },
+      { id: 71, muni:"Monte Caseros",       depto:"Monte Caseros",      rio:"Uruguay", siteCode:74, seriesId:74, lat:-30.2517, lng:-57.6379, alerta:7.50, evacuacion:8.50, aguasBajas:0.80 }
+    ];
+
+    function initApp() {
+      map = L.map('map', { preferCanvas: true }).setView([-28.5, -57.8], 7);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+      map.on('click', function(e) {
+        const lat = e.latlng.lat.toFixed(5);
+        const lng = e.latlng.lng.toFixed(5);
+        if (tempMarker) map.removeLayer(tempMarker);
+        tempMarker = L.marker([lat, lng]).addTo(map);
+        prepararNuevoCentro(lat, lng);
+      });
+
+      cargarDatosActualizados();
+      actualizarEstiloBotonInfo();
+    }
+
+    function toggleCapaDepartamentos() {
+      if (!capaDepartamentos) {
+        document.getElementById('loading').classList.remove('off');
+        fetch('./corrientes.json')
+          .then(res => res.json())
+          .then(data => {
+            capaDepartamentos = L.geoJSON(data, {
+              style: () => ({ color: '#0a84ff', weight: 1.8, opacity: 0.9, fillColor: '#0a84ff', fillOpacity: 0.15 }),
+              onEachFeature: (feature, layer) => {
+                const p = feature.properties || {};
+                const nombreDpto = p.nam || p.fna || p.nombre || "Departamento";
+                layer.bindTooltip(`Dpto. ${nombreDpto}`, { permanent: false, direction: 'center', className: 'dept-tooltip' });
+                layer.on({
+                  mouseover: (e) => e.target.setStyle({ weight: 3, color: '#5ac8fa', fillOpacity: 0.35 }),
+                  mouseout: (e) => capaDepartamentos.resetStyle(e.target)
+                });
+              }
+            });
+            capaDepartamentos.addTo(map);
+            departamentosVisibles = true;
+            actualizarEstiloBotonDptos();
+            document.getElementById('loading').classList.add('off');
+          })
+          .catch(err => {
+            console.error("Error al cargar corrientes.json:", err);
+            document.getElementById('loading').classList.add('off');
+          });
+        return;
+      }
+      if (departamentosVisibles) {
+        map.removeLayer(capaDepartamentos);
+        departamentosVisibles = false;
+      } else {
+        map.addLayer(capaDepartamentos);
+        departamentosVisibles = true;
+      }
+      actualizarEstiloBotonDptos();
+    }
+
+    function actualizarEstiloBotonDptos() {
+      const btn = document.getElementById('btn-toggle-dptos');
+      if (btn) {
+        btn.style.background = departamentosVisibles ? '#0a84ff' : '#2c2c2e';
+        btn.style.borderColor = departamentosVisibles ? '#005bb5' : '#3a3a3c';
+      }
+    }
+
+    async function fetchJsonRobust(url) {
+      try {
+        const res = await fetch(url, { redirect: 'follow', cache: 'no-store' });
+        if (res.ok) {
+          const txt = await res.text();
+          try { return JSON.parse(txt); } catch (e) {
+            console.warn("JSON parse falló:", e);
+          }
+        }
+      } catch (e) {
+        console.warn("Fetch directo falló:", e.message);
+      }
+      try {
+        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+        const resProxy = await fetch(proxyUrl);
+        if (resProxy.ok) {
+          const text = await resProxy.text();
+          return JSON.parse(text);
+        }
+      } catch (e) {
+        console.error("Proxy también falló:", e);
+      }
+      return null;
+    }
+
+    function procesarYRenderizarRios(riosData) {
+      estacionesData = ESTACIONES.map(est => {
+        let infoEst = null;
+        if (Array.isArray(riosData)) {
+          infoEst = riosData.find(r => String(r.id) === String(est.id) || String(r.seriesId) === String(est.seriesId));
+        } else if (typeof riosData === 'object' && riosData !== null) {
+          infoEst = riosData[est.id] || riosData[est.seriesId];
+        }
+        let obs = infoEst ? (infoEst.historico || infoEst.datos || []) : [];
+        let alturaVal = infoEst && infoEst.altura !== undefined ? parseFloat(infoEst.altura) : 2.00;
+        let tendenciaVal = "permanece";
+        if (obs && obs.length > 0) {
+          const ult = obs[obs.length - 1];
+          alturaVal = parseFloat(ult.nivel || ult.valor) || alturaVal;
+          if (obs.length > 1) {
+            const prev = parseFloat(obs[obs.length - 2].nivel || obs[obs.length - 2].valor) || alturaVal;
+            const diff = alturaVal - prev;
+            if (diff > 0.02) tendenciaVal = "crece";
+            else if (diff < -0.02) tendenciaVal = "baja";
+          }
+        }
+        return { ...est, nombre: est.muni, altura: alturaVal, tendencia: tendenciaVal, historico: obs };
+      });
+      renderEstaciones(estacionesData);
+    }
+
+    async function cargarDatosActualizados() {
+      const riosCache = localStorage.getItem('cache_rios_data');
+      if (riosCache) {
+        try { procesarYRenderizarRios(JSON.parse(riosCache)); } catch(e) {}
+      }
+
+      document.getElementById('loading').classList.remove('off');
+
+      const promesaRios = fetchJsonRobust(CONFIG.URL_RIOS)
+        .then(riosData => {
+          if (riosData) {
+            localStorage.setItem('cache_rios_data', JSON.stringify(riosData));
+            procesarYRenderizarRios(riosData);
+          }
+        })
+        .catch(err => console.error("Error al cargar ríos:", err));
+
+      const promesaBaseDatos = fetchJsonRobust(CONFIG.URL_BASE_DATOS)
+        .then(dataDB => {
+          if (!dataDB) {
+            console.error("No se pudo cargar la base de datos.");
+            centrosData = [];
+            personasData = [];
+            monitoreoData = [];
+          } else {
+            centrosData = dataDB.centros || [];
+            personasData = dataDB.personas || [];
+            monitoreoData = dataDB.monitoreos || [];
+          }
+          actualizarSelectsCentros();
+          renderCentros(centrosData);
+          renderIngresos(personasData);
+          renderMonitoreo(monitoreoData);
+        })
+        .catch(err => console.error("Error al cargar DB:", err));
+
+      Promise.allSettled([promesaRios, promesaBaseDatos]).then(() => {
+        document.getElementById('loading').classList.add('off');
+      });
+    }
+
+    function renderEstaciones(estaciones) {
+      const listaEl = document.getElementById('list-estaciones');
+      listaEl.innerHTML = '';
+      markersEstaciones.forEach(m => map.removeLayer(m));
+      markersEstaciones = [];
+
+      const fragment = document.createDocumentFragment();
+
+      estaciones.forEach(est => {
+        let colorEstado = '#0a84ff';
+        if (est.tendencia === 'crece') colorEstado = '#F4492E';
+        else if (est.tendencia === 'baja') colorEstado = '#28a745';
+        else if (est.altura >= est.evacuacion) colorEstado = '#F4492E';
+        else if (est.altura >= est.alerta) colorEstado = '#FAAE05';
+
+        let flecha = est.tendencia === 'crece' ? '⬆' : (est.tendencia === 'baja' ? '⬇' : '➔');
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between;">
+            <span class="muni">${escapeHtml(est.nombre)}</span>
+            <span class="rio">Río ${escapeHtml(est.rio)}</span>
+          </div>
+          <div style="display:flex; align-items:baseline; gap:8px; margin-top:4px;">
+            <span class="altura">${est.altura.toFixed(2)}</span>
+            <span style="font-size:0.8rem; color:#666;">mts</span>
+            <span style="margin-left:auto; font-size:0.8rem; color:${colorEstado}; font-weight:bold;">${flecha} ${escapeHtml(est.tendencia)}</span>
+          </div>
+          <button onclick="event.stopPropagation(); mostrarGraficoINA('${escapeHtml(est.nombre)}', ${est.seriesId}, ${est.alerta}, ${est.evacuacion}, ${est.aguasBajas})" 
+                  style="margin-top:8px; width:100%; background:#e5e5ea; border:1px solid #ccc; color:#0a84ff; padding:4px; border-radius:4px; font-size:0.72rem; cursor:pointer; font-weight:bold;">
+            📈 Ver Gráfica de Evolución
+          </button>
+        `;
+        card.onclick = () => {
+          map.flyTo([est.lat, est.lng], 12);
+          if (window.innerWidth <= 768) toggleSidebar();
+        };
+        fragment.appendChild(card);
+
+        const customIcon = L.divIcon({
+          className: 'custom-river-pin',
+          html: `
+            <div style="display:flex; flex-direction:column; align-items:center; text-align:center; cursor:pointer;">
+              <img src="./Rio-removebg-preview.png" style="width:28px; height:28px; object-fit:contain; margin-bottom:2px;" alt="Río">
+              <div style="background:rgba(18,18,18,0.90); color:#fff; font-size:10.5px; font-weight:700; padding:2px 6px; border-radius:4px; white-space:nowrap;">
+                ${escapeHtml(est.nombre)}
+              </div>
+              <div style="background:rgba(18,18,18,0.95); color:${colorEstado}; font-size:11px; font-weight:800; padding:1px 6px; border-radius:4px; margin-top:2px; border:1px solid ${colorEstado};">
+                ${est.altura.toFixed(2)}m ${flecha}
+              </div>
+            </div>
+          `,
+          iconSize: [110, 65],
+          iconAnchor: [55, 15]
+        });
+
+        const marker = L.marker([est.lat, est.lng], { icon: customIcon }).addTo(map);
+        marker.bindPopup(`
+          <div style="color:#000;">
+            <b>${escapeHtml(est.nombre)}</b><br>
+            Río: ${escapeHtml(est.rio)}<br>
+            Altura actual: <b>${est.altura.toFixed(2)}m</b> (${escapeHtml(est.tendencia)})<br>
+            Alerta: ${est.alerta}m | Evacuación: ${est.evacuacion}m<br>
+            Aguas bajas: ${est.aguasBajas}m<br><br>
+            <button onclick="mostrarGraficoINA('${escapeHtml(est.nombre)}', ${est.seriesId}, ${est.alerta}, ${est.evacuacion}, ${est.aguasBajas})" 
+                    style="background:#0a84ff; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.75rem;">
+              📈 Ver Gráfica de Evolución
+            </button>
+          </div>
+        `);
+        markersEstaciones.push(marker);
+      });
+
+      listaEl.appendChild(fragment);
+    }
+
+    function formatearFechaEjeX(fechaStr) {
+      if (!fechaStr) return "";
+      try {
+        const d = new Date(fechaStr);
+        if (!isNaN(d.getTime())) {
+          const dd = String(d.getDate()).padStart(2, '0');
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          return dd + '/' + mm;
+        }
+      } catch (e) {}
+      const str = String(fechaStr).trim().split(' ')[0].split('T')[0];
+      const partes = str.split('-');
+      if (partes.length === 3 && partes[0].length === 4) {
+        return partes[2] + '/' + partes[1];
+      }
+      return str;
+    }
+
+    function formatearFechaHora(fechaStr) {
+      if (!fechaStr) return "–";
+      try {
+        const d = new Date(fechaStr);
+        if (!isNaN(d.getTime())) {
+          const dd = String(d.getDate()).padStart(2, '0');
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const hh = String(d.getHours()).padStart(2, '0');
+          const mi = String(d.getMinutes()).padStart(2, '0');
+          return dd + '/' + mm + ' ' + hh + ':' + mi;
+        }
+      } catch (e) {}
+      const s = String(fechaStr).trim();
+      const m = s.match(/(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+      if (m) return m[3] + '/' + m[2] + ' ' + m[4] + ':' + m[5];
+      const m2 = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+      if (m2) return m2[3] + '/' + m2[2];
+      return s;
+    }
+
+    function mostrarGraficoINA(nombreEstacion, seriesId, nivelAlerta, nivelEvac, nivelAguasBajas) {
+      const est = estacionesData.find(e => e.seriesId === seriesId) || {};
+      const obs = est.historico || [];
+
+      document.getElementById('grafico-titulo').innerText = nombreEstacion;
+      const rio = est.rio || 'Río';
+      const depto = est.depto || est.departamento || '';
+      document.getElementById('grafico-subtitulo').innerText = `${rio} · Depto ${depto} · Últimos 7 días`;
+
+      abrirModal('modalGrafico');
+
+      const labels = obs.map(item => formatearFechaEjeX(item.fecha || item.timestart || ""));
+      const valores = obs.map(item => parseFloat(item.nivel || item.valor) || 0);
+
+      const nObs = valores.length;
+      let ultimaAltura = '–', ultimaFecha = '–', variacion = '–', colorVar = '#666', maxVal = '–', minVal = '–';
+
+      if (nObs > 0) {
+        const ultimo = obs[obs.length - 1];
+        ultimaAltura = parseFloat(ultimo.nivel || ultimo.valor).toFixed(2) + ' m';
+        ultimaFecha = formatearFechaHora(ultimo.fecha || ultimo.timestart);
+        const primero = parseFloat(obs[0].nivel || obs[0].valor) || 0;
+        const ultimoNum = parseFloat(ultimo.nivel || ultimo.valor) || 0;
+        const delta = ultimoNum - primero;
+        const signo = delta >= 0 ? '+' : '';
+        variacion = `${signo}${delta.toFixed(2)} m`;
+        colorVar = delta > 0 ? '#cf222e' : (delta < 0 ? '#1a7f37' : '#666');
+        maxVal = Math.max(...valores).toFixed(2) + ' m';
+        minVal = Math.min(...valores).toFixed(2) + ' m';
+      }
+
+      document.getElementById('kpi-obs').innerText = nObs;
+      document.getElementById('kpi-ultima').innerText = `${ultimaAltura} (${ultimaFecha})`;
+      const kpiVar = document.getElementById('kpi-variacion');
+      kpiVar.innerText = variacion;
+      kpiVar.style.color = colorVar;
+      kpiVar.style.fontWeight = '700';
+      document.getElementById('kpi-max').innerText = maxVal;
+      document.getElementById('kpi-min').innerText = minVal;
+
+      const container = document.getElementById('chartContainer');
+      container.innerHTML = '<canvas id="chartEvolucion"></canvas>';
+      const ctx = document.getElementById('chartEvolucion').getContext('2d');
+      if (miChart) miChart.destroy();
+
+      const umbralMax = Math.max(Number(nivelEvac) || 0, Number(nivelAlerta) || 0, ...(valores.length ? valores : [0]));
+      const yMax = Math.ceil((umbralMax + 1.0) * 2) / 2;
+
+      const umbralLabelsPlugin = {
+        id: 'umbralLabels',
+        afterDatasetsDraw(chart) {
+          const { ctx, chartArea: { right }, scales: { y } } = chart;
+          ctx.save();
+          ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          const evac = Number(nivelEvac);
+          const alerta = Number(nivelAlerta);
+          const bajas = Number(nivelAguasBajas);
+          const cerca = (!isNaN(evac) && !isNaN(alerta) && Math.abs(evac - alerta) < 0.6);
+          if (!isNaN(evac)) {
+            const yPos = y.getPixelForValue(evac);
+            ctx.fillStyle = '#ef4444';
+            ctx.fillText('Evacuación ' + evac.toFixed(2), right - 6, yPos + (cerca ? -10 : -8));
+          }
+          if (!isNaN(alerta)) {
+            const yPos = y.getPixelForValue(alerta);
+            ctx.fillStyle = '#ca8a04';
+            ctx.fillText('Alerta ' + alerta.toFixed(2), right - 6, yPos + (cerca ? 12 : -8));
+          }
+          if (!isNaN(bajas) && bajas > 0) {
+            const yPos = y.getPixelForValue(bajas);
+            ctx.fillStyle = '#ea580c';
+            ctx.fillText('Aguas bajas ' + bajas.toFixed(2), right - 6, yPos + 10);
+          }
+          ctx.restore();
+        }
+      };
+
+      miChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels.length ? labels : ['Sin datos'],
+          datasets: [
+            { label: 'Nivel (m)', data: valores.length ? valores : [0], borderColor: '#1e40af', backgroundColor: 'rgba(30, 64, 175, 0.08)', fill: true, tension: 0.25, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2, order: 1 },
+            { label: 'Evacuación', data: Array(labels.length || 1).fill(nivelEvac), borderColor: '#ef4444', borderDash: [6, 4], pointRadius: 0, borderWidth: 1.5, fill: false, order: 2 },
+            { label: 'Alerta', data: Array(labels.length || 1).fill(nivelAlerta), borderColor: '#eab308', borderDash: [6, 4], pointRadius: 0, borderWidth: 1.5, fill: false, order: 3 },
+            { label: 'Aguas bajas', data: Array(labels.length || 1).fill(nivelAguasBajas || 0), borderColor: '#f97316', borderDash: [4, 4], pointRadius: 0, borderWidth: 1.5, fill: false, order: 4 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  if (ctx.datasetIndex === 0) return `Nivel: ${ctx.parsed.y.toFixed(2)} m`;
+                  return null;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#555', maxRotation: 0, minRotation: 0, autoSkip: true, maxTicksLimit: 10, font: { size: 11 } }, grid: { color: '#f0f0f0', drawBorder: false } },
+            y: { min: 0, max: yMax, ticks: { color: '#555', font: { size: 11 }, callback: v => v.toFixed(1) }, grid: { color: '#e8e8e8', drawBorder: false }, title: { display: true, text: 'Altura (m)', color: '#666', font: { size: 11, weight: '600' } } }
+          }
+        },
+        plugins: [umbralLabelsPlugin]
+      });
+    }
+
+    function actualizarSelectsCentros() {
+      const selects = [document.getElementById('p-centro'), document.getElementById('m-centro')];
+      selects.forEach(s => {
+        if (centrosData.length > 0) {
+          s.innerHTML = centrosData.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.nombre)} (${escapeHtml(c.municipio)})</option>`).join('');
+        } else {
+          s.innerHTML = '<option value="">Sin centros registrados</option>';
+        }
+      });
+    }
+
+    function cambiarPestana(pestana) {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar.classList.contains('collapsed')) {
+        sidebar.classList.remove('collapsed');
+        actualizarEstiloBotonInfo();
+      }
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.sec-tab').forEach(s => s.style.display = 'none');
+      document.getElementById(`btn-tab-${pestana}`).classList.add('active');
+      document.getElementById(`sec-${pestana}`).style.display = 'flex';
+    }
+
+    function abrirModal(id) { document.getElementById(id).classList.add('active'); }
+    function cerrarModal(id) { 
+      document.getElementById(id).classList.remove('active');
+      if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
+    }
+
+    function ocultarAlertas() {
+      const aP = document.getElementById('alertPersona');
+      const aM = document.getElementById('alertMonitoreo');
+      if (aP) { aP.style.display = 'none'; aP.innerText = ''; }
+      if (aM) { aM.style.display = 'none'; aM.innerText = ''; }
+    }
+
+    function prepararNuevoCentro(lat = '', lng = '') {
+      document.getElementById('modalCentroTitulo').innerText = "Nuevo Centro de Evacuados";
+      document.getElementById('c-id').value = "";
+      document.getElementById('c-nombre').value = "";
+      document.getElementById('c-muni').value = "";
+      document.getElementById('c-evacuados').value = "0";
+      document.getElementById('c-capacidad').value = "100";
+      document.getElementById('c-lat').value = lat;
+      document.getElementById('c-lng').value = lng;
+      document.getElementById('c-contacto').value = "";
+      document.getElementById('c-banos').value = "0";
+      document.getElementById('c-agua').value = "";
+      abrirModal('modalCentro');
+    }
+
+    function prepararNuevaPersona() {
+      ocultarAlertas();
+      document.getElementById('modalPersonaTitulo').innerText = "Ingreso de Persona";
+      document.getElementById('p-idPersona').value = "";
+      document.getElementById('p-nombre').value = "";
+      document.getElementById('p-dni').value = "";
+      document.getElementById('p-nac').value = "";
+      document.getElementById('p-fecha').value = new Date().toISOString().split('T')[0];
+      document.getElementById('p-egreso').value = "";
+      document.getElementById('p-sexo').value = "Masculino";
+      document.getElementById('p-grupo-etario').value = "25 a 49 años";
+      document.getElementById('p-familia').value = ultimoGrupoFamiliar || "";
+      document.getElementById('p-rol-familiar').value = "";
+      document.getElementById('p-ubicacion').value = "";
+      document.getElementById('p-origen').value = "";
+      abrirModal('modalPersona');
+    }
+
+    function prepararNuevoMonitoreo() {
+      ocultarAlertas();
+      document.getElementById('modalMonitoreoTitulo').innerText = "Registro Monitoreo Diario";
+      document.getElementById('m-idPersona').value = "";
+      document.getElementById('m-nombre').value = "";
+      document.getElementById('m-dni').value = "";
+      document.getElementById('m-dni').readOnly = false;
+      document.getElementById('m-edad').value = "";
+      document.getElementById('m-embarazada').value = "NO";
+      document.getElementById('m-discapacidad').value = "NO";
+      document.getElementById('m-medicacion').value = "";
+      document.getElementById('m-sintomas').value = "";
+      abrirModal('modalMonitoreo');
+    }
+
+    function editarCentro(idCentro, event) {
+      if (event) event.stopPropagation();
+      const centro = centrosData.find(c => String(c.id).trim() === String(idCentro).trim());
+      if (!centro) return;
+      document.getElementById('modalCentroTitulo').innerText = "Editar Centro de Evacuados";
+      document.getElementById('c-id').value = centro.id;
+      document.getElementById('c-nombre').value = centro.nombre;
+      document.getElementById('c-muni').value = centro.municipio;
+      document.getElementById('c-evacuados').value = centro.evacuados;
+      document.getElementById('c-capacidad').value = centro.capacidad;
+      document.getElementById('c-lat').value = centro.lat;
+      document.getElementById('c-lng').value = centro.lng;
+      document.getElementById('c-contacto').value = centro.contacto;
+      document.getElementById('c-banos').value = centro.banos;
+      document.getElementById('c-agua').value = centro.insumos || centro.agua || "";
+      abrirModal('modalCentro');
+    }
+
+    function editarPersona(dni, event) {
+      if (event) event.stopPropagation();
+      ocultarAlertas();
+      const persona = personasData.find(p => String(p.dni).trim() === String(dni).trim());
+      if (!persona) return;
+      document.getElementById('modalPersonaTitulo').innerText = "Editar Ingreso de Persona";
+      document.getElementById('p-idPersona').value = persona.idPersona || "";
+      document.getElementById('p-centro').value = persona.idCentro;
+      document.getElementById('p-nombre').value = persona.nombreApellido;
+      document.getElementById('p-dni').value = persona.dni || "";
+      document.getElementById('p-nac').value = parsearFechaParaInput(persona.fechaNac);
+      document.getElementById('p-fecha').value = parsearFechaParaInput(persona.fechaIngreso);
+      document.getElementById('p-egreso').value = parsearFechaParaInput(persona.fechaEgreso);
+      document.getElementById('p-sexo').value = persona.sexo || "Masculino";
+      document.getElementById('p-grupo-etario').value = persona.grupoEtario || "25 a 49 años";
+      document.getElementById('p-familia').value = persona.grupoFamiliar || "";
+      document.getElementById('p-rol-familiar').value = persona.rolFamiliar || "";
+      document.getElementById('p-ubicacion').value = persona.ubicacion || "";
+      document.getElementById('p-origen').value = persona.origen || "";
+      abrirModal('modalPersona');
+    }
+
+    function editarMonitoreo(dni, event) {
+      if (event) event.stopPropagation();
+      ocultarAlertas();
+      const monitoreo = monitoreoData.find(m => String(m.dni).trim() === String(dni).trim());
+      if (!monitoreo) return;
+      document.getElementById('modalMonitoreoTitulo').innerText = "Editar Registro de Monitoreo";
+      document.getElementById('m-idPersona').value = monitoreo.idPersona || "";
+      document.getElementById('m-centro').value = monitoreo.idCentro;
+      document.getElementById('m-nombre').value = monitoreo.nombreApellido;
+      document.getElementById('m-dni').value = monitoreo.dni;
+      document.getElementById('m-dni').readOnly = true;
+      document.getElementById('m-edad').value = monitoreo.edad || "";
+      document.getElementById('m-embarazada').value = monitoreo.embarazada || "NO";
+      document.getElementById('m-discapacidad').value = monitoreo.discapacidad || "NO";
+      document.getElementById('m-medicacion').value = monitoreo.medicacion || "";
+      document.getElementById('m-sintomas').value = monitoreo.sintomas || "";
+      abrirModal('modalMonitoreo');
+    }
+
+    function guardarCentro(e) {
+      e.preventDefault();
+      const rawLat = String(document.getElementById('c-lat').value).replace(',', '.');
+      const rawLng = String(document.getElementById('c-lng').value).replace(',', '.');
+      const idExistente = document.getElementById('c-id').value;
+
+      const nuevo = {
+        action: "add_centro",
+        id: idExistente ? String(idExistente).trim() : generarId('CTR'),
+        nombre: document.getElementById('c-nombre').value,
+        municipio: document.getElementById('c-muni').value,
+        evacuados: parseInt(document.getElementById('c-evacuados').value) || 0,
+        capacidad: parseInt(document.getElementById('c-capacidad').value) || 0,
+        lat: parseFloat(rawLat),
+        lng: parseFloat(rawLng),
+        contacto: document.getElementById('c-contacto').value || "Sin dato",
+        banos: parseInt(document.getElementById('c-banos').value) || 0,
+        insumos: document.getElementById('c-agua').value || "Sin registrar"
+      };
+      cerrarModal('modalCentro');
+      enviarAData(nuevo, "centros");
+    }
+
+    function construirPayloadPersona() {
+      const idPersona = document.getElementById('p-idPersona').value;
+      let dniIngresado = String(document.getElementById('p-dni').value).trim();
+      if (!dniIngresado) {
+        dniIngresado = generarId('PENDIENTE');
+      }
+      const fechaIngresoRaw = document.getElementById('p-fecha').value || new Date().toISOString().split('T')[0];
+      const grupoFamiliar = document.getElementById('p-familia').value.trim();
+
+      // Sticky
+      if (grupoFamiliar) {
+        ultimoGrupoFamiliar = grupoFamiliar;
+        localStorage.setItem('ultimoGrupoFamiliar', grupoFamiliar);
+      }
+
+      return {
+        action: "add_persona",
+        idPersona: idPersona || generarId('PER'),
+        idCentro: String(document.getElementById('p-centro').value),
+        nombreApellido: document.getElementById('p-nombre').value.trim(),
+        dni: dniIngresado,
+        fechaNac: formatearFechaLatina(document.getElementById('p-nac').value),
+        fechaIngreso: formatearFechaLatina(fechaIngresoRaw),
+        fechaEgreso: formatearFechaLatina(document.getElementById('p-egreso').value),
+        sexo: document.getElementById('p-sexo').value,
+        grupoEtario: document.getElementById('p-grupo-etario').value,
+        grupoFamiliar: grupoFamiliar,
+        rolFamiliar: document.getElementById('p-rol-familiar').value || "",
+        ubicacion: document.getElementById('p-ubicacion').value.trim(),
+        origen: document.getElementById('p-origen').value.trim()
+      };
+    }
+
+    function guardarPersona(e) {
+      e.preventDefault();
+      ocultarAlertas();
+
+      const alertBox = document.getElementById('alertPersona');
+      const idPersona = document.getElementById('p-idPersona').value;
+      const dniIngresado = String(document.getElementById('p-dni').value).trim();
+      const nombreIngresado = String(document.getElementById('p-nombre').value).trim().toLowerCase();
+      const idCentroIngresado = String(document.getElementById('p-centro').value);
+
+      if (!idPersona && dniIngresado && !dniIngresado.startsWith("PENDIENTE-")) {
+        const personaExistenteDNI = personasData.find(p => String(p.dni).trim() === dniIngresado);
+        if (personaExistenteDNI) {
+          alertBox.innerText = `El DNI ${dniIngresado} ya existe a nombre de: ${personaExistenteDNI.nombreApellido}.`;
+          alertBox.style.display = 'block';
+          return;
+        }
+      }
+
+      if (!idPersona) {
+        const coincidenciaNombreCentro = personasData.find(p => 
+          String(p.nombreApellido).trim().toLowerCase() === nombreIngresado && 
+          String(p.idCentro) === idCentroIngresado
+        );
+        if (coincidenciaNombreCentro) {
+          alertBox.innerText = `Ya existe una persona llamada "${document.getElementById('p-nombre').value}" en el centro seleccionado.`;
+          alertBox.style.display = 'block';
+          return;
+        }
+      }
+
+      const nuevaP = construirPayloadPersona();
+      cerrarModal('modalPersona');
+      enviarAData(nuevaP, "ingresos");
+    }
+
+    async function guardarPersonaYSeguir(e) {
+      e.preventDefault();
+      ocultarAlertas();
+
+      const alertBox = document.getElementById('alertPersona');
+      const nombre = document.getElementById('p-nombre').value.trim();
+      if (!nombre) {
+        alertBox.innerText = "El nombre es obligatorio.";
+        alertBox.style.display = 'block';
+        return;
+      }
+
+      const nuevaP = construirPayloadPersona();
+      
+      const loading = document.getElementById('loading');
+      loading.classList.remove('off');
+
+      try {
+        await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            ...nuevaP,
+            token: CONFIG.API_TOKEN
+          })
+        });
+
+        await new Promise(r => setTimeout(r, 1000));
+        await cargarDatosActualizados();
+
+        // Limpiar solo los campos de persona, mantener grupo y centro
+        document.getElementById('p-idPersona').value = "";
+        document.getElementById('p-nombre').value = "";
+        document.getElementById('p-dni').value = "";
+        document.getElementById('p-nac').value = "";
+        document.getElementById('p-rol-familiar').value = "";
+        document.getElementById('p-ubicacion').value = "";
+        document.getElementById('p-origen').value = "";
+        document.getElementById('p-fecha').value = new Date().toISOString().split('T')[0];
+      } catch (err) {
+        console.error("Error:", err);
+        alert('Error al guardar: ' + err.message);
+      } finally {
+        loading.classList.add('off');
+      }
+    }
+
+    function guardarMonitoreo(e) {
+      e.preventDefault();
+      ocultarAlertas();
+
+      const alertBox = document.getElementById('alertMonitoreo');
+      const idPersona = document.getElementById('m-idPersona').value;
+      let dniIngresado = String(document.getElementById('m-dni').value).trim();
+      if (!dniIngresado) dniIngresado = generarId('PENDIENTE');
+      const nombreIngresado = String(document.getElementById('m-nombre').value).trim().toLowerCase();
+      const idCentroIngresado = String(document.getElementById('m-centro').value);
+
+      if (!idPersona && dniIngresado && !dniIngresado.startsWith("PENDIENTE-")) {
+        const monitoreoExistenteDNI = monitoreoData.find(m => String(m.dni).trim() === dniIngresado);
+        if (monitoreoExistenteDNI) {
+          alertBox.innerText = `El DNI ${dniIngresado} ya tiene un monitoreo activo.`;
+          alertBox.style.display = 'block';
+          return;
+        }
+      }
+
+      const hoyIso = new Date().toISOString().split('T')[0];
+      const nuevoM = {
+        action: "add_monitoreo",
+        idPersona: idPersona || generarId('PER'),
+        idCentro: idCentroIngresado,
+        nombreApellido: document.getElementById('m-nombre').value.trim(),
+        dni: dniIngresado,
+        edad: document.getElementById('m-edad').value,
+        embarazada: document.getElementById('m-embarazada').value,
+        discapacidad: document.getElementById('m-discapacidad').value,
+        medicacion: document.getElementById('m-medicacion').value,
+        sintomas: document.getElementById('m-sintomas').value,
+        fechaIngreso: formatearFechaLatina(hoyIso)
+      };
+
+      cerrarModal('modalMonitoreo');
+      enviarAData(nuevoM, "monitoreo");
+    }
+
+    async function eliminarCentro(idCentro, event) {
+      if (event) event.stopPropagation();
+      if (!confirm("¿Confirma que desea eliminar este centro de evacuados?")) return;
+
+      const loading = document.getElementById('loading');
+      loading.classList.remove('off');
+
+      try {
+        await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ 
+            action: "delete_centro", 
+            id: String(idCentro).trim(),
+            token: CONFIG.API_TOKEN
+          })
+        });
+        await new Promise(r => setTimeout(r, 1200));
+        await cargarDatosActualizados();
+      } catch (err) {
+        console.error("Error al eliminar centro:", err);
+        alert('Error al eliminar el centro: ' + err.message);
+      } finally {
+        loading.classList.add('off');
+      }
+    }
+
+    async function eliminarPersona(dni, event) {
+      if (event) event.stopPropagation();
+      if (!confirm("¿Confirma que desea eliminar el registro de este ingreso?")) return;
+
+      const loading = document.getElementById('loading');
+      loading.classList.remove('off');
+
+      try {
+        await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ 
+            action: "delete_persona", 
+            dni: String(dni).trim(),
+            token: CONFIG.API_TOKEN
+          })
+        });
+        await new Promise(r => setTimeout(r, 1200));
+        await cargarDatosActualizados();
+      } catch (err) {
+        console.error("Error al eliminar persona:", err);
+        alert('Error al eliminar el registro: ' + err.message);
+      } finally {
+        loading.classList.add('off');
+      }
+    }
+
+    async function eliminarMonitoreo(dni, event) {
+      if (event) event.stopPropagation();
+      if (!confirm("¿Confirma que desea eliminar este registro de monitoreo?")) return;
+
+      const loading = document.getElementById('loading');
+      loading.classList.remove('off');
+
+      try {
+        await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ 
+            action: "delete_monitoreo", 
+            dni: String(dni).trim(),
+            token: CONFIG.API_TOKEN
+          })
+        });
+        await new Promise(r => setTimeout(r, 1200));
+        await cargarDatosActualizados();
+      } catch (err) {
+        console.error("Error al eliminar monitoreo:", err);
+        alert('Error al eliminar el monitoreo: ' + err.message);
+      } finally {
+        loading.classList.add('off');
+      }
+    }
+
+    async function enviarAData(payload, pestanaDestino) {
+      const loading = document.getElementById('loading');
+      loading.classList.remove('off');
+
+      try {
+        await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'text/plain;charset=utf-8' 
+          },
+          body: JSON.stringify({
+            ...payload,
+            token: CONFIG.API_TOKEN
+          })
+        });
+
+        // Esperamos un poco para dar tiempo a que Apps Script procese
+        // (mientras no se configure CORS en el script no se puede leer la respuesta)
+        await new Promise(r => setTimeout(r, 1200));
+        await cargarDatosActualizados();
+        if (pestanaDestino) cambiarPestana(pestanaDestino);
+
+      } catch (err) {
+        console.error('Error al guardar:', err);
+        alert('No se pudo guardar el registro. Verifique la conexión e intente nuevamente.\n\nDetalle: ' + err.message);
+      } finally {
+        loading.classList.add('off');
+      }
+    }
+
+    function renderCentros(centros) {
+      const listEl = document.getElementById('list-centros');
+      listEl.innerHTML = '';
+      markersCentros.forEach(m => map.removeLayer(m));
+      markersCentros = [];
+
+      if (!centros || centros.length === 0) {
+        listEl.innerHTML = '<div style="color:#666; font-size:0.75rem; text-align:center; padding:15px;">Sin centros registrados</div>';
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+
+      centros.forEach(c => {
+        const pctOcupacion = c.capacidad > 0 ? Math.round((c.evacuados / c.capacidad) * 100) : 0;
+        let colorPin = '#0a84ff';
+        if (pctOcupacion >= 100) colorPin = '#F4492E';
+        else if (pctOcupacion >= 80) colorPin = '#FAAE05';
+
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.style.borderLeft = `4px solid ${colorPin}`;
+        card.innerHTML = `
+          <div class="card-actions-top">
+            <button class="btn-card-action" onclick="editarCentro('${escapeHtml(c.id)}', event)" title="Editar Centro">✏️</button>
+            <button class="btn-card-action" onclick="eliminarCentro('${escapeHtml(c.id)}', event)" title="Eliminar Centro">🗑️</button>
+          </div>
+          <div class="item-title">🏠 ${escapeHtml(c.nombre)}</div>
+          <div class="item-sub">📍 ${escapeHtml(c.municipio)} | 📞 ${escapeHtml(c.contacto)}</div>
+          <div class="item-badge">Evacuados: ${c.evacuados} / ${c.capacidad} (${pctOcupacion}%)</div>
+        `;
+        card.onclick = () => {
+          if (c.lat && c.lng && !(c.lat === 0 && c.lng === 0)) {
+            map.flyTo([c.lat, c.lng], 15);
+          }
+          if (window.innerWidth <= 768) toggleSidebar();
+        };
+        fragment.appendChild(card);
+
+        const latOk = typeof c.lat === 'number' && !isNaN(c.lat) && c.lat !== 0;
+        const lngOk = typeof c.lng === 'number' && !isNaN(c.lng) && c.lng !== 0;
+
+        if (latOk && lngOk) {
+          const iconoSalud = L.icon({
+            iconUrl: './3304549.png',
+            iconSize: [36, 36],
+            iconAnchor: [18, 36],
+            popupAnchor: [0, -32]
+          });
+
+          const marker = L.marker([c.lat, c.lng], { icon: iconoSalud }).addTo(map);
+          marker.bindPopup(`
+            <div style="color:#000; min-width: 180px;">
+              <div style="font-size:0.75rem; font-weight:bold; color:#0a84ff; text-transform:uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
+                Centro de Evacuados
+              </div>
+              <div style="font-size:1.05rem; font-weight:bold; color:#111; margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px;">
+                ${escapeHtml(c.nombre)}
+              </div>
+              <div style="font-size: 0.8rem; line-height: 1.4;">
+                <b>Municipio:</b> ${escapeHtml(c.municipio)}<br>
+                <b>Evacuados:</b> ${c.evacuados} / ${c.capacidad} (${pctOcupacion}%)<br>
+                <b>Contacto:</b> ${escapeHtml(c.contacto)}<br>
+                <b>Baños:</b> ${c.banos || 0} | <b>Insumos:</b> ${escapeHtml(c.insumos || c.agua || 'Sin registrar')}
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:5px; margin-top:10px;">
+                <button onclick="verEvacuadosCentro('${escapeHtml(c.id)}')" style="background:#0a84ff; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.75rem;">👥 Evacuados</button>
+                <button onclick="verInsumosCentro('${escapeHtml(c.id)}')" style="background:#17a2b8; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.75rem;">📦 Insumos</button>
+                <button onclick="editarCentro('${escapeHtml(c.id)}')" title="Editar Centro" style="background:#ffc107; color:#000; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.85rem;">✏️</button>
+                <button onclick="eliminarCentro('${escapeHtml(c.id)}')" title="Eliminar Centro" style="background:#d9534f; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.85rem;">🗑️</button>
+              </div>
+            </div>
+          `);
+          markersCentros.push(marker);
+        }
+      });
+
+      listEl.appendChild(fragment);
+    }
+
+    function verEvacuadosCentro(idCentro) {
+      cambiarPestana('ingresos');
+      const filtrados = personasData.filter(p => String(p.idCentro).trim() === String(idCentro).trim());
+      renderIngresos(filtrados);
+    }
+
+    function verInsumosCentro(idCentro) {
+      const centro = centrosData.find(c => String(c.id).trim() === String(idCentro).trim());
+      if (!centro) return;
+      document.getElementById('insumos-titulo').innerText = `Insumos - ${centro.nombre}`;
+      document.getElementById('insumos-contenido').innerText = centro.insumos || centro.agua || 'Sin insumos registrados';
+      abrirModal('modalInsumos');
+    }
+
+    function filtrarPorGrupoFamiliar(texto) {
+      const filtro = (texto || "").trim().toLowerCase();
+      if (!filtro) {
+        renderIngresos(personasData);
+        return;
+      }
+      const filtrados = personasData.filter(p => 
+        String(p.grupoFamiliar || "").toLowerCase().includes(filtro)
+      );
+      renderIngresos(filtrados);
+    }
+
+    function renderIngresos(personas) {
+      const listEl = document.getElementById('list-ingresos');
+      
+      if (!personas || personas.length === 0) {
+        listEl.innerHTML = '<div style="color:#666; font-size:0.75rem; text-align:center; padding:15px;">Sin registros de ingresos</div>';
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+
+      personas.forEach(p => {
+        const centro = centrosData.find(c => String(c.id).trim() === String(p.idCentro).trim()) || { nombre: 'Centro General' };
+        const dniMostrar = (p.dni && String(p.dni).startsWith("PENDIENTE-")) ? "DNI pendiente" : (p.dni || "Sin DNI");
+
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.innerHTML = `
+          <div class="card-actions-top">
+            <button class="btn-card-action" onclick="editarPersona('${escapeHtml(p.dni)}', event)" title="Editar Persona">✏️</button>
+            <button class="btn-card-action" onclick="eliminarPersona('${escapeHtml(p.dni)}', event)" title="Eliminar Persona">🗑️</button>
+          </div>
+          <div class="item-title">👤 ${escapeHtml(p.nombreApellido)} (${escapeHtml(p.grupoEtario || 'S/D')})</div>
+          <div class="item-sub">DNI: ${escapeHtml(dniMostrar)} | Centro: ${escapeHtml(centro.nombre)}</div>
+          <div class="item-sub">Ingreso: ${escapeHtml(p.fechaIngreso || 'S/D')} ${p.fechaEgreso ? '| Egreso: ' + escapeHtml(p.fechaEgreso) : ''}</div>
+          ${(p.grupoFamiliar || p.rolFamiliar) ? `
+            <div class="item-badge" style="background: #e1f5fe; color: #01579b;">
+              ${escapeHtml(p.grupoFamiliar || 'Sin código')}${p.rolFamiliar ? ' · ' + escapeHtml(p.rolFamiliar) : ''}
+            </div>` : ''}
+          ${(p.ubicacion || p.origen) ? `
+            <div class="item-sub" style="margin-top:3px;">
+              ${p.ubicacion ? 'Ubic: ' + escapeHtml(p.ubicacion) : ''}${p.ubicacion && p.origen ? ' | ' : ''}${p.origen ? 'Origen: ' + escapeHtml(p.origen) : ''}
+            </div>` : ''}
+        `;
+        fragment.appendChild(card);
+      });
+
+      listEl.innerHTML = '';
+      listEl.appendChild(fragment);
+    }
+
+    function renderMonitoreo(monitoreos) {
+      const listEl = document.getElementById('list-monitoreo');
+      
+      if (!monitoreos || monitoreos.length === 0) {
+        listEl.innerHTML = '<div style="color:#666; font-size:0.75rem; text-align:center; padding:15px;">Sin registros de monitoreo</div>';
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+
+      monitoreos.forEach(m => {
+        const centro = centrosData.find(c => String(c.id).trim() === String(m.idCentro).trim()) || { nombre: 'Centro General' };
+
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.innerHTML = `
+          <div class="card-actions-top">
+            <button class="btn-card-action" onclick="editarMonitoreo('${escapeHtml(m.dni)}', event)" title="Editar Monitoreo">✏️</button>
+            <button class="btn-card-action" onclick="eliminarMonitoreo('${escapeHtml(m.dni)}', event)" title="Eliminar Monitoreo">🗑️</button>
+          </div>
+          <div class="item-title">🩺 ${escapeHtml(m.nombreApellido)} (Edad: ${escapeHtml(m.edad || 'S/D')})</div>
+          <div class="item-sub">DNI: ${escapeHtml(m.dni)} | Centro: ${escapeHtml(centro.nombre)}</div>
+          <div class="item-sub">Embarazada: ${escapeHtml(m.embarazada)} | Discapacidad: ${escapeHtml(m.discapacidad)}</div>
+          <div class="item-badge">Medicación: ${escapeHtml(m.medicacion || 'Ninguna')}</div>
+        `;
+        fragment.appendChild(card);
+      });
+
+      listEl.innerHTML = '';
+      listEl.appendChild(fragment);
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('collapsed');
+      actualizarEstiloBotonInfo();
+      setTimeout(() => map.invalidateSize(), 250);
+    }
+
+    function actualizarEstiloBotonInfo() {
+      const sidebar = document.getElementById('sidebar');
+      const btnInfo = document.getElementById('btn-toggle-info');
+      const isCollapsed = sidebar.classList.contains('collapsed');
+      if (btnInfo) {
+        btnInfo.style.background = isCollapsed ? '#2c2c2e' : '#0a84ff';
+        btnInfo.style.borderColor = isCollapsed ? '#3a3a3c' : '#005bb5';
+      }
+    }
+
+    function filtrar(rio, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (rio === 'todos') renderEstaciones(estacionesData);
+      else renderEstaciones(estacionesData.filter(e => e.rio.toLowerCase().includes(rio.toLowerCase())));
+    }
+
+    window.onresize = actualizarEstiloBotonInfo;
+    window.onload = initApp;
+  </script>
 </body>
 </html>
