@@ -456,6 +456,7 @@
       // Nunca subas el token real a un repositorio público.
       API_TOKEN: 'CAMBIAR_POR_TOKEN_SECRETO_FUERTE',
 
+      // URLs actualizadas (repositorio de prueba)
       URL_BASE_DATOS: "https://script.google.com/macros/s/AKfycbwIDs7pZNRWdHRV0OQfLxdlddRznMMGBpQCihHvBXsZPaKGYBMW_bw3ullei2HzXKAH1A/exec",
       URL_RIOS: "https://script.google.com/macros/s/AKfycbyMdSOrgWQo2z9eAAtGSHaIbmR04pJwyj1KcP44hnKNU9pbDuGlrPXTsSZ2RMG8rmLU/exec",
 
@@ -1189,6 +1190,7 @@
       try {
         await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
           method: 'POST',
+          mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             ...nuevaP,
@@ -1196,7 +1198,7 @@
           })
         });
 
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 1500));
         await cargarDatosActualizados();
 
         // Limpiar solo los campos de persona, mantener grupo y centro
@@ -1265,6 +1267,7 @@
       try {
         await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
           method: 'POST',
+          mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ 
             action: "delete_centro", 
@@ -1272,7 +1275,7 @@
             token: CONFIG.API_TOKEN
           })
         });
-        await new Promise(r => setTimeout(r, 1200));
+        await new Promise(r => setTimeout(r, 1500));
         await cargarDatosActualizados();
       } catch (err) {
         console.error("Error al eliminar centro:", err);
@@ -1292,6 +1295,7 @@
       try {
         await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
           method: 'POST',
+          mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ 
             action: "delete_persona", 
@@ -1299,7 +1303,7 @@
             token: CONFIG.API_TOKEN
           })
         });
-        await new Promise(r => setTimeout(r, 1200));
+        await new Promise(r => setTimeout(r, 1500));
         await cargarDatosActualizados();
       } catch (err) {
         console.error("Error al eliminar persona:", err);
@@ -1319,6 +1323,7 @@
       try {
         await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
           method: 'POST',
+          mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ 
             action: "delete_monitoreo", 
@@ -1326,7 +1331,7 @@
             token: CONFIG.API_TOKEN
           })
         });
-        await new Promise(r => setTimeout(r, 1200));
+        await new Promise(r => setTimeout(r, 1500));
         await cargarDatosActualizados();
       } catch (err) {
         console.error("Error al eliminar monitoreo:", err);
@@ -1341,8 +1346,11 @@
       loading.classList.remove('off');
 
       try {
+        // mode: 'no-cors' es OBLIGATORIO con Apps Script Web App desde GitHub Pages.
+        // El request llega al servidor y se guarda, pero no podemos leer la respuesta.
         await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
           method: 'POST',
+          mode: 'no-cors',
           headers: { 
             'Content-Type': 'text/plain;charset=utf-8' 
           },
@@ -1352,9 +1360,8 @@
           })
         });
 
-        // Esperamos un poco para dar tiempo a que Apps Script procese
-        // (mientras no se configure CORS en el script no se puede leer la respuesta)
-        await new Promise(r => setTimeout(r, 1200));
+        // Esperamos a que Apps Script procese (no podemos leer la respuesta con no-cors)
+        await new Promise(r => setTimeout(r, 1500));
         await cargarDatosActualizados();
         if (pestanaDestino) cambiarPestana(pestanaDestino);
 
