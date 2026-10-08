@@ -447,64 +447,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
   <script>
-    // ============================================================
-    // CONFIGURACIÓN
-    // ============================================================
-    const CONFIG = {
-      // ⚠️ IMPORTANTE: Reemplaza por un token real y guárdalo también
-      // en Script Properties del Apps Script (clave: API_TOKEN).
-      // Nunca subas el token real a un repositorio público.
-      API_TOKEN: 'CAMBIAR_POR_TOKEN_SECRETO_FUERTE',
-
-      // URLs actualizadas (repositorio de prueba)
-      URL_BASE_DATOS: "https://script.google.com/macros/s/AKfycbwIDs7pZNRWdHRV0OQfLxdlddRznMMGBpQCihHvBXsZPaKGYBMW_bw3ullei2HzXKAH1A/exec",
-      URL_RIOS: "https://script.google.com/macros/s/AKfycbyMdSOrgWQo2z9eAAtGSHaIbmR04pJwyj1KcP44hnKNU9pbDuGlrPXTsSZ2RMG8rmLU/exec",
-
-      // Tiempo máximo de espera para las peticiones (ms)
-      FETCH_TIMEOUT: 15000
-    };
-
-    // ============================================================
-    // UTILIDADES DE SEGURIDAD Y ROBUSTEZ
-    // ============================================================
-    function escapeHtml(str) {
-      if (str === null || str === undefined) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    function generarId(prefijo = 'ID') {
-      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-        return `${prefijo}-${crypto.randomUUID()}`;
-      }
-      // Fallback para navegadores muy antiguos
-      return `${prefijo}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    }
-
-    async function fetchConTimeout(url, options = {}, timeout = CONFIG.FETCH_TIMEOUT) {
-      const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), timeout);
-
-      try {
-        const res = await fetch(url, {
-          ...options,
-          signal: controller.signal
-        });
-        clearTimeout(id);
-        return res;
-      } catch (err) {
-        clearTimeout(id);
-        throw err;
-      }
-    }
-
-    // ============================================================
-    // ESTADO GLOBAL
-    // ============================================================
     let map, tempMarker = null;
     let markersEstaciones = [], markersCentros = [];
     let estacionesData = [], centrosData = [], personasData = [], monitoreoData = [];
@@ -512,6 +454,9 @@
     let capaDepartamentos = null;
     let departamentosVisibles = false;
     let ultimoGrupoFamiliar = localStorage.getItem('ultimoGrupoFamiliar') || "";
+
+    const URL_BASE_DATOS = "https://script.google.com/macros/s/AKfycbz4qHHOSxjpVv3enlPme9dj1OoKpY8y1_e3HN6gb-SuxCna5a4M0rqIS9fu-HRwLlySzw/exec";
+    const URL_RIOS = "https://script.google.com/macros/s/AKfycbxbFye_X-EEjyTdyBnrTTv_G1FodaBPukRNdrLVG8c8VXUZGwPYV-Z_mET9orucNcF0rg/exec";
 
     function formatearFechaLatina(fechaStr) {
       if (!fechaStr) return "";
@@ -673,7 +618,7 @@
 
       document.getElementById('loading').classList.remove('off');
 
-      const promesaRios = fetchJsonRobust(CONFIG.URL_RIOS)
+      const promesaRios = fetchJsonRobust(URL_RIOS)
         .then(riosData => {
           if (riosData) {
             localStorage.setItem('cache_rios_data', JSON.stringify(riosData));
@@ -682,7 +627,7 @@
         })
         .catch(err => console.error("Error al cargar ríos:", err));
 
-      const promesaBaseDatos = fetchJsonRobust(CONFIG.URL_BASE_DATOS)
+      const promesaBaseDatos = fetchJsonRobust(URL_BASE_DATOS)
         .then(dataDB => {
           if (!dataDB) {
             console.error("No se pudo cargar la base de datos.");
@@ -712,8 +657,6 @@
       markersEstaciones.forEach(m => map.removeLayer(m));
       markersEstaciones = [];
 
-      const fragment = document.createDocumentFragment();
-
       estaciones.forEach(est => {
         let colorEstado = '#0a84ff';
         if (est.tendencia === 'crece') colorEstado = '#F4492E';
@@ -727,15 +670,15 @@
         card.className = 'card';
         card.innerHTML = `
           <div style="display:flex; justify-content:space-between;">
-            <span class="muni">${escapeHtml(est.nombre)}</span>
-            <span class="rio">Río ${escapeHtml(est.rio)}</span>
+            <span class="muni">${est.nombre}</span>
+            <span class="rio">Río ${est.rio}</span>
           </div>
           <div style="display:flex; align-items:baseline; gap:8px; margin-top:4px;">
             <span class="altura">${est.altura.toFixed(2)}</span>
             <span style="font-size:0.8rem; color:#666;">mts</span>
-            <span style="margin-left:auto; font-size:0.8rem; color:${colorEstado}; font-weight:bold;">${flecha} ${escapeHtml(est.tendencia)}</span>
+            <span style="margin-left:auto; font-size:0.8rem; color:${colorEstado}; font-weight:bold;">${flecha} ${est.tendencia}</span>
           </div>
-          <button onclick="event.stopPropagation(); mostrarGraficoINA('${escapeHtml(est.nombre)}', ${est.seriesId}, ${est.alerta}, ${est.evacuacion}, ${est.aguasBajas})" 
+          <button onclick="event.stopPropagation(); mostrarGraficoINA('${est.nombre}', ${est.seriesId}, ${est.alerta}, ${est.evacuacion}, ${est.aguasBajas})" 
                   style="margin-top:8px; width:100%; background:#e5e5ea; border:1px solid #ccc; color:#0a84ff; padding:4px; border-radius:4px; font-size:0.72rem; cursor:pointer; font-weight:bold;">
             📈 Ver Gráfica de Evolución
           </button>
@@ -744,7 +687,7 @@
           map.flyTo([est.lat, est.lng], 12);
           if (window.innerWidth <= 768) toggleSidebar();
         };
-        fragment.appendChild(card);
+        listaEl.appendChild(card);
 
         const customIcon = L.divIcon({
           className: 'custom-river-pin',
@@ -752,7 +695,7 @@
             <div style="display:flex; flex-direction:column; align-items:center; text-align:center; cursor:pointer;">
               <img src="./Rio-removebg-preview.png" style="width:28px; height:28px; object-fit:contain; margin-bottom:2px;" alt="Río">
               <div style="background:rgba(18,18,18,0.90); color:#fff; font-size:10.5px; font-weight:700; padding:2px 6px; border-radius:4px; white-space:nowrap;">
-                ${escapeHtml(est.nombre)}
+                ${est.nombre}
               </div>
               <div style="background:rgba(18,18,18,0.95); color:${colorEstado}; font-size:11px; font-weight:800; padding:1px 6px; border-radius:4px; margin-top:2px; border:1px solid ${colorEstado};">
                 ${est.altura.toFixed(2)}m ${flecha}
@@ -766,12 +709,12 @@
         const marker = L.marker([est.lat, est.lng], { icon: customIcon }).addTo(map);
         marker.bindPopup(`
           <div style="color:#000;">
-            <b>${escapeHtml(est.nombre)}</b><br>
-            Río: ${escapeHtml(est.rio)}<br>
-            Altura actual: <b>${est.altura.toFixed(2)}m</b> (${escapeHtml(est.tendencia)})<br>
+            <b>${est.nombre}</b><br>
+            Río: ${est.rio}<br>
+            Altura actual: <b>${est.altura.toFixed(2)}m</b> (${est.tendencia})<br>
             Alerta: ${est.alerta}m | Evacuación: ${est.evacuacion}m<br>
             Aguas bajas: ${est.aguasBajas}m<br><br>
-            <button onclick="mostrarGraficoINA('${escapeHtml(est.nombre)}', ${est.seriesId}, ${est.alerta}, ${est.evacuacion}, ${est.aguasBajas})" 
+            <button onclick="mostrarGraficoINA('${est.nombre}', ${est.seriesId}, ${est.alerta}, ${est.evacuacion}, ${est.aguasBajas})" 
                     style="background:#0a84ff; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.75rem;">
               📈 Ver Gráfica de Evolución
             </button>
@@ -779,8 +722,6 @@
         `);
         markersEstaciones.push(marker);
       });
-
-      listaEl.appendChild(fragment);
     }
 
     function formatearFechaEjeX(fechaStr) {
@@ -939,7 +880,7 @@
       const selects = [document.getElementById('p-centro'), document.getElementById('m-centro')];
       selects.forEach(s => {
         if (centrosData.length > 0) {
-          s.innerHTML = centrosData.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.nombre)} (${escapeHtml(c.municipio)})</option>`).join('');
+          s.innerHTML = centrosData.map(c => `<option value="${c.id}">${c.nombre} (${c.municipio})</option>`).join('');
         } else {
           s.innerHTML = '<option value="">Sin centros registrados</option>';
         }
@@ -1086,7 +1027,7 @@
 
       const nuevo = {
         action: "add_centro",
-        id: idExistente ? String(idExistente).trim() : generarId('CTR'),
+        id: idExistente ? String(idExistente).trim() : String(Date.now()),
         nombre: document.getElementById('c-nombre').value,
         municipio: document.getElementById('c-muni').value,
         evacuados: parseInt(document.getElementById('c-evacuados').value) || 0,
@@ -1105,7 +1046,7 @@
       const idPersona = document.getElementById('p-idPersona').value;
       let dniIngresado = String(document.getElementById('p-dni').value).trim();
       if (!dniIngresado) {
-        dniIngresado = generarId('PENDIENTE');
+        dniIngresado = "PENDIENTE-" + Date.now().toString().slice(-6);
       }
       const fechaIngresoRaw = document.getElementById('p-fecha').value || new Date().toISOString().split('T')[0];
       const grupoFamiliar = document.getElementById('p-familia').value.trim();
@@ -1118,7 +1059,7 @@
 
       return {
         action: "add_persona",
-        idPersona: idPersona || generarId('PER'),
+        idPersona: idPersona || ("PER-" + Date.now()),
         idCentro: String(document.getElementById('p-centro').value),
         nombreApellido: document.getElementById('p-nombre').value.trim(),
         dni: dniIngresado,
@@ -1170,7 +1111,7 @@
       enviarAData(nuevaP, "ingresos");
     }
 
-    async function guardarPersonaYSeguir(e) {
+    function guardarPersonaYSeguir(e) {
       e.preventDefault();
       ocultarAlertas();
 
@@ -1184,38 +1125,33 @@
 
       const nuevaP = construirPayloadPersona();
       
-      const loading = document.getElementById('loading');
-      loading.classList.remove('off');
-
-      try {
-        await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            ...nuevaP,
-            token: CONFIG.API_TOKEN
-          })
-        });
-
-        await new Promise(r => setTimeout(r, 1500));
-        await cargarDatosActualizados();
-
-        // Limpiar solo los campos de persona, mantener grupo y centro
-        document.getElementById('p-idPersona').value = "";
-        document.getElementById('p-nombre').value = "";
-        document.getElementById('p-dni').value = "";
-        document.getElementById('p-nac').value = "";
-        document.getElementById('p-rol-familiar').value = "";
-        document.getElementById('p-ubicacion').value = "";
-        document.getElementById('p-origen').value = "";
-        document.getElementById('p-fecha').value = new Date().toISOString().split('T')[0];
-      } catch (err) {
+      // Enviar sin cerrar el modal
+      document.getElementById('loading').classList.remove('off');
+      fetch(URL_BASE_DATOS, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(nuevaP)
+      })
+      .then(() => {
+        setTimeout(() => {
+          cargarDatosActualizados();
+          // Limpiar solo los campos de persona, mantener grupo y centro
+          document.getElementById('p-idPersona').value = "";
+          document.getElementById('p-nombre').value = "";
+          document.getElementById('p-dni').value = "";
+          document.getElementById('p-nac').value = "";
+          document.getElementById('p-rol-familiar').value = "";
+          document.getElementById('p-ubicacion').value = "";
+          document.getElementById('p-origen').value = "";
+          document.getElementById('p-fecha').value = new Date().toISOString().split('T')[0];
+          document.getElementById('loading').classList.add('off');
+        }, 1000);
+      })
+      .catch(err => {
         console.error("Error:", err);
-        alert('Error al guardar: ' + err.message);
-      } finally {
-        loading.classList.add('off');
-      }
+        document.getElementById('loading').classList.add('off');
+      });
     }
 
     function guardarMonitoreo(e) {
@@ -1225,7 +1161,7 @@
       const alertBox = document.getElementById('alertMonitoreo');
       const idPersona = document.getElementById('m-idPersona').value;
       let dniIngresado = String(document.getElementById('m-dni').value).trim();
-      if (!dniIngresado) dniIngresado = generarId('PENDIENTE');
+      if (!dniIngresado) dniIngresado = "PENDIENTE-" + Date.now().toString().slice(-6);
       const nombreIngresado = String(document.getElementById('m-nombre').value).trim().toLowerCase();
       const idCentroIngresado = String(document.getElementById('m-centro').value);
 
@@ -1241,7 +1177,7 @@
       const hoyIso = new Date().toISOString().split('T')[0];
       const nuevoM = {
         action: "add_monitoreo",
-        idPersona: idPersona || generarId('PER'),
+        idPersona: idPersona || ("PER-" + Date.now()),
         idCentro: idCentroIngresado,
         nombreApellido: document.getElementById('m-nombre').value.trim(),
         dni: dniIngresado,
@@ -1257,120 +1193,75 @@
       enviarAData(nuevoM, "monitoreo");
     }
 
-    async function eliminarCentro(idCentro, event) {
+    function eliminarCentro(idCentro, event) {
       if (event) event.stopPropagation();
       if (!confirm("¿Confirma que desea eliminar este centro de evacuados?")) return;
-
-      const loading = document.getElementById('loading');
-      loading.classList.remove('off');
-
-      try {
-        await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ 
-            action: "delete_centro", 
-            id: String(idCentro).trim(),
-            token: CONFIG.API_TOKEN
-          })
-        });
-        await new Promise(r => setTimeout(r, 1500));
-        await cargarDatosActualizados();
-      } catch (err) {
+      document.getElementById('loading').classList.remove('off');
+      fetch(URL_BASE_DATOS, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "delete_centro", id: String(idCentro).trim() })
+      })
+      .then(() => setTimeout(cargarDatosActualizados, 1200))
+      .catch(err => {
         console.error("Error al eliminar centro:", err);
-        alert('Error al eliminar el centro: ' + err.message);
-      } finally {
-        loading.classList.add('off');
-      }
+        document.getElementById('loading').classList.add('off');
+      });
     }
 
-    async function eliminarPersona(dni, event) {
+    function eliminarPersona(dni, event) {
       if (event) event.stopPropagation();
       if (!confirm("¿Confirma que desea eliminar el registro de este ingreso?")) return;
-
-      const loading = document.getElementById('loading');
-      loading.classList.remove('off');
-
-      try {
-        await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ 
-            action: "delete_persona", 
-            dni: String(dni).trim(),
-            token: CONFIG.API_TOKEN
-          })
-        });
-        await new Promise(r => setTimeout(r, 1500));
-        await cargarDatosActualizados();
-      } catch (err) {
+      document.getElementById('loading').classList.remove('off');
+      fetch(URL_BASE_DATOS, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "delete_persona", dni: String(dni).trim() })
+      })
+      .then(() => setTimeout(cargarDatosActualizados, 1200))
+      .catch(err => {
         console.error("Error al eliminar persona:", err);
-        alert('Error al eliminar el registro: ' + err.message);
-      } finally {
-        loading.classList.add('off');
-      }
+        document.getElementById('loading').classList.add('off');
+      });
     }
 
-    async function eliminarMonitoreo(dni, event) {
+    function eliminarMonitoreo(dni, event) {
       if (event) event.stopPropagation();
       if (!confirm("¿Confirma que desea eliminar este registro de monitoreo?")) return;
-
-      const loading = document.getElementById('loading');
-      loading.classList.remove('off');
-
-      try {
-        await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ 
-            action: "delete_monitoreo", 
-            dni: String(dni).trim(),
-            token: CONFIG.API_TOKEN
-          })
-        });
-        await new Promise(r => setTimeout(r, 1500));
-        await cargarDatosActualizados();
-      } catch (err) {
+      document.getElementById('loading').classList.remove('off');
+      fetch(URL_BASE_DATOS, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "delete_monitoreo", dni: String(dni).trim() })
+      })
+      .then(() => setTimeout(cargarDatosActualizados, 1200))
+      .catch(err => {
         console.error("Error al eliminar monitoreo:", err);
-        alert('Error al eliminar el monitoreo: ' + err.message);
-      } finally {
-        loading.classList.add('off');
-      }
+        document.getElementById('loading').classList.add('off');
+      });
     }
 
-    async function enviarAData(payload, pestanaDestino) {
-      const loading = document.getElementById('loading');
-      loading.classList.remove('off');
-
-      try {
-        // mode: 'no-cors' es OBLIGATORIO con Apps Script Web App desde GitHub Pages.
-        // El request llega al servidor y se guarda, pero no podemos leer la respuesta.
-        await fetchConTimeout(CONFIG.URL_BASE_DATOS, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 
-            'Content-Type': 'text/plain;charset=utf-8' 
-          },
-          body: JSON.stringify({
-            ...payload,
-            token: CONFIG.API_TOKEN
-          })
-        });
-
-        // Esperamos a que Apps Script procese (no podemos leer la respuesta con no-cors)
-        await new Promise(r => setTimeout(r, 1500));
-        await cargarDatosActualizados();
-        if (pestanaDestino) cambiarPestana(pestanaDestino);
-
-      } catch (err) {
-        console.error('Error al guardar:', err);
-        alert('No se pudo guardar el registro. Verifique la conexión e intente nuevamente.\n\nDetalle: ' + err.message);
-      } finally {
-        loading.classList.add('off');
-      }
+    function enviarAData(payload, pestanaDestino) {
+      document.getElementById('loading').classList.remove('off');
+      fetch(URL_BASE_DATOS, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        setTimeout(() => {
+          cargarDatosActualizados();
+          cambiarPestana(pestanaDestino);
+        }, 1200);
+      })
+      .catch(err => {
+        console.error("Error al enviar datos:", err);
+        document.getElementById('loading').classList.add('off');
+      });
     }
 
     function renderCentros(centros) {
@@ -1384,8 +1275,6 @@
         return;
       }
 
-      const fragment = document.createDocumentFragment();
-
       centros.forEach(c => {
         const pctOcupacion = c.capacidad > 0 ? Math.round((c.evacuados / c.capacidad) * 100) : 0;
         let colorPin = '#0a84ff';
@@ -1397,11 +1286,11 @@
         card.style.borderLeft = `4px solid ${colorPin}`;
         card.innerHTML = `
           <div class="card-actions-top">
-            <button class="btn-card-action" onclick="editarCentro('${escapeHtml(c.id)}', event)" title="Editar Centro">✏️</button>
-            <button class="btn-card-action" onclick="eliminarCentro('${escapeHtml(c.id)}', event)" title="Eliminar Centro">🗑️</button>
+            <button class="btn-card-action" onclick="editarCentro('${c.id}', event)" title="Editar Centro">✏️</button>
+            <button class="btn-card-action" onclick="eliminarCentro('${c.id}', event)" title="Eliminar Centro">🗑️</button>
           </div>
-          <div class="item-title">🏠 ${escapeHtml(c.nombre)}</div>
-          <div class="item-sub">📍 ${escapeHtml(c.municipio)} | 📞 ${escapeHtml(c.contacto)}</div>
+          <div class="item-title">🏠 ${c.nombre}</div>
+          <div class="item-sub">📍 ${c.municipio} | 📞 ${c.contacto}</div>
           <div class="item-badge">Evacuados: ${c.evacuados} / ${c.capacidad} (${pctOcupacion}%)</div>
         `;
         card.onclick = () => {
@@ -1410,7 +1299,7 @@
           }
           if (window.innerWidth <= 768) toggleSidebar();
         };
-        fragment.appendChild(card);
+        listEl.appendChild(card);
 
         const latOk = typeof c.lat === 'number' && !isNaN(c.lat) && c.lat !== 0;
         const lngOk = typeof c.lng === 'number' && !isNaN(c.lng) && c.lng !== 0;
@@ -1430,27 +1319,25 @@
                 Centro de Evacuados
               </div>
               <div style="font-size:1.05rem; font-weight:bold; color:#111; margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px;">
-                ${escapeHtml(c.nombre)}
+                ${c.nombre}
               </div>
               <div style="font-size: 0.8rem; line-height: 1.4;">
-                <b>Municipio:</b> ${escapeHtml(c.municipio)}<br>
+                <b>Municipio:</b> ${c.municipio}<br>
                 <b>Evacuados:</b> ${c.evacuados} / ${c.capacidad} (${pctOcupacion}%)<br>
-                <b>Contacto:</b> ${escapeHtml(c.contacto)}<br>
-                <b>Baños:</b> ${c.banos || 0} | <b>Insumos:</b> ${escapeHtml(c.insumos || c.agua || 'Sin registrar')}
+                <b>Contacto:</b> ${c.contacto}<br>
+                <b>Baños:</b> ${c.banos || 0} | <b>Insumos:</b> ${c.insumos || c.agua || 'Sin registrar'}
               </div>
               <div style="display:flex; justify-content:space-between; align-items:center; gap:5px; margin-top:10px;">
-                <button onclick="verEvacuadosCentro('${escapeHtml(c.id)}')" style="background:#0a84ff; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.75rem;">👥 Evacuados</button>
-                <button onclick="verInsumosCentro('${escapeHtml(c.id)}')" style="background:#17a2b8; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.75rem;">📦 Insumos</button>
-                <button onclick="editarCentro('${escapeHtml(c.id)}')" title="Editar Centro" style="background:#ffc107; color:#000; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.85rem;">✏️</button>
-                <button onclick="eliminarCentro('${escapeHtml(c.id)}')" title="Eliminar Centro" style="background:#d9534f; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.85rem;">🗑️</button>
+                <button onclick="verEvacuadosCentro('${c.id}')" style="background:#0a84ff; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.75rem;">👥 Evacuados</button>
+                <button onclick="verInsumosCentro('${c.id}')" style="background:#17a2b8; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.75rem;">📦 Insumos</button>
+                <button onclick="editarCentro('${c.id}')" title="Editar Centro" style="background:#ffc107; color:#000; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.85rem;">✏️</button>
+                <button onclick="eliminarCentro('${c.id}')" title="Eliminar Centro" style="background:#d9534f; color:#fff; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.85rem;">🗑️</button>
               </div>
             </div>
           `);
           markersCentros.push(marker);
         }
       });
-
-      listEl.appendChild(fragment);
     }
 
     function verEvacuadosCentro(idCentro) {
@@ -1481,74 +1368,54 @@
 
     function renderIngresos(personas) {
       const listEl = document.getElementById('list-ingresos');
+      listEl.innerHTML = personas.length ? '' : '<div style="color:#666; font-size:0.75rem; text-align:center; padding:15px;">Sin registros de ingresos</div>';
       
-      if (!personas || personas.length === 0) {
-        listEl.innerHTML = '<div style="color:#666; font-size:0.75rem; text-align:center; padding:15px;">Sin registros de ingresos</div>';
-        return;
-      }
-
-      const fragment = document.createDocumentFragment();
-
       personas.forEach(p => {
         const centro = centrosData.find(c => String(c.id).trim() === String(p.idCentro).trim()) || { nombre: 'Centro General' };
-        const dniMostrar = (p.dni && String(p.dni).startsWith("PENDIENTE-")) ? "DNI pendiente" : (p.dni || "Sin DNI");
-
+        const dniMostrar = (p.dni && p.dni.startsWith("PENDIENTE-")) ? "DNI pendiente" : (p.dni || "Sin DNI");
         const card = document.createElement('div');
         card.className = 'item-card';
         card.innerHTML = `
           <div class="card-actions-top">
-            <button class="btn-card-action" onclick="editarPersona('${escapeHtml(p.dni)}', event)" title="Editar Persona">✏️</button>
-            <button class="btn-card-action" onclick="eliminarPersona('${escapeHtml(p.dni)}', event)" title="Eliminar Persona">🗑️</button>
+            <button class="btn-card-action" onclick="editarPersona('${p.dni}', event)" title="Editar Persona">✏️</button>
+            <button class="btn-card-action" onclick="eliminarPersona('${p.dni}', event)" title="Eliminar Persona">🗑️</button>
           </div>
-          <div class="item-title">👤 ${escapeHtml(p.nombreApellido)} (${escapeHtml(p.grupoEtario || 'S/D')})</div>
-          <div class="item-sub">DNI: ${escapeHtml(dniMostrar)} | Centro: ${escapeHtml(centro.nombre)}</div>
-          <div class="item-sub">Ingreso: ${escapeHtml(p.fechaIngreso || 'S/D')} ${p.fechaEgreso ? '| Egreso: ' + escapeHtml(p.fechaEgreso) : ''}</div>
+          <div class="item-title">👤 ${p.nombreApellido} (${p.grupoEtario || 'S/D'})</div>
+          <div class="item-sub">DNI: ${dniMostrar} | Centro: ${centro.nombre}</div>
+          <div class="item-sub">Ingreso: ${p.fechaIngreso || 'S/D'} ${p.fechaEgreso ? '| Egreso: ' + p.fechaEgreso : ''}</div>
           ${(p.grupoFamiliar || p.rolFamiliar) ? `
             <div class="item-badge" style="background: #e1f5fe; color: #01579b;">
-              ${escapeHtml(p.grupoFamiliar || 'Sin código')}${p.rolFamiliar ? ' · ' + escapeHtml(p.rolFamiliar) : ''}
+              ${p.grupoFamiliar || 'Sin código'}${p.rolFamiliar ? ' · ' + p.rolFamiliar : ''}
             </div>` : ''}
           ${(p.ubicacion || p.origen) ? `
             <div class="item-sub" style="margin-top:3px;">
-              ${p.ubicacion ? 'Ubic: ' + escapeHtml(p.ubicacion) : ''}${p.ubicacion && p.origen ? ' | ' : ''}${p.origen ? 'Origen: ' + escapeHtml(p.origen) : ''}
+              ${p.ubicacion ? 'Ubic: ' + p.ubicacion : ''}${p.ubicacion && p.origen ? ' | ' : ''}${p.origen ? 'Origen: ' + p.origen : ''}
             </div>` : ''}
         `;
-        fragment.appendChild(card);
+        listEl.appendChild(card);
       });
-
-      listEl.innerHTML = '';
-      listEl.appendChild(fragment);
     }
 
     function renderMonitoreo(monitoreos) {
       const listEl = document.getElementById('list-monitoreo');
+      listEl.innerHTML = monitoreos.length ? '' : '<div style="color:#666; font-size:0.75rem; text-align:center; padding:15px;">Sin registros de monitoreo</div>';
       
-      if (!monitoreos || monitoreos.length === 0) {
-        listEl.innerHTML = '<div style="color:#666; font-size:0.75rem; text-align:center; padding:15px;">Sin registros de monitoreo</div>';
-        return;
-      }
-
-      const fragment = document.createDocumentFragment();
-
       monitoreos.forEach(m => {
         const centro = centrosData.find(c => String(c.id).trim() === String(m.idCentro).trim()) || { nombre: 'Centro General' };
-
         const card = document.createElement('div');
         card.className = 'item-card';
         card.innerHTML = `
           <div class="card-actions-top">
-            <button class="btn-card-action" onclick="editarMonitoreo('${escapeHtml(m.dni)}', event)" title="Editar Monitoreo">✏️</button>
-            <button class="btn-card-action" onclick="eliminarMonitoreo('${escapeHtml(m.dni)}', event)" title="Eliminar Monitoreo">🗑️</button>
+            <button class="btn-card-action" onclick="editarMonitoreo('${m.dni}', event)" title="Editar Monitoreo">✏️</button>
+            <button class="btn-card-action" onclick="eliminarMonitoreo('${m.dni}', event)" title="Eliminar Monitoreo">🗑️</button>
           </div>
-          <div class="item-title">🩺 ${escapeHtml(m.nombreApellido)} (Edad: ${escapeHtml(m.edad || 'S/D')})</div>
-          <div class="item-sub">DNI: ${escapeHtml(m.dni)} | Centro: ${escapeHtml(centro.nombre)}</div>
-          <div class="item-sub">Embarazada: ${escapeHtml(m.embarazada)} | Discapacidad: ${escapeHtml(m.discapacidad)}</div>
-          <div class="item-badge">Medicación: ${escapeHtml(m.medicacion || 'Ninguna')}</div>
+          <div class="item-title">🩺 ${m.nombreApellido} (Edad: ${m.edad || 'S/D'})</div>
+          <div class="item-sub">DNI: ${m.dni} | Centro: ${centro.nombre}</div>
+          <div class="item-sub">Embarazada: ${m.embarazada} | Discapacidad: ${m.discapacidad}</div>
+          <div class="item-badge">Medicación: ${m.medicacion || 'Ninguna'}</div>
         `;
-        fragment.appendChild(card);
+        listEl.appendChild(card);
       });
-
-      listEl.innerHTML = '';
-      listEl.appendChild(fragment);
     }
 
     function toggleSidebar() {
